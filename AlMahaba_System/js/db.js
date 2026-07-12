@@ -1,391 +1,984 @@
+/* ╔══════════════════════════════════════════════════════════════════════════════╗
+   ║  شركة المحبة لقطع الغيار - قاعدة البيانات المحلية                         ║
+   ║  Database Manager - LocalStorage Persistence Layer                          ║
+   ╚══════════════════════════════════════════════════════════════════════════════╝ */
+
+/**
+ * مدير قاعدة البيانات المحلية
+ * يستخدم LocalStorage لحفظ البيانات بشكل دائم في المتصفح
+ */
 class DB {
     constructor() {
-        this.prefix = 'almahaba_';
+        /** @type {string} بادئة مفاتيح التخزين لمنع التعارض */
+        this.PREFIX = 'almahaba_';
         
-        // Supabase configuration
-        this.supabaseUrl = 'https://qcppvkjfsxuctgbylcpm.supabase.co';
-        this.supabaseKey = 'sb_publishable_i43B3x7fbi_nT0xSfpBEmA_7_sjBA-A';
-        
-        if (window.supabase) {
-            this.supabase = window.supabase.createClient(this.supabaseUrl, this.supabaseKey);
+        /** @type {string} إصدار قاعدة البيانات */
+        this.VERSION = '1.0.0';
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       التهيئة الأولية
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * تهيئة قاعدة البيانات بالبيانات الافتراضية إذا كانت فارغة
+     */
+    init() {
+        // التحقق من وجود بيانات مسبقة
+        if (!this.get('initialized')) {
+            console.log('🔧 تهيئة قاعدة البيانات لأول مرة...');
+            this._initDefaultEmployees();
+            this._initDefaultSettings();
+            this._initDefaultAttendance();
+            this._initDefaultSalaryDetails();
+            this.set('suppliers', []);
+            this.set('supplier_txs', []);
+            this.set('treasury_txs', []);
+            this.set('users', [{
+                id: 1,
+                username: 'admin',
+                password: '123', // Default simple password
+                name: 'المدير الرئيسي',
+                role: 'admin',
+                permissions: ['*']
+            }]);
+            this.set('initialized', true);
+            this.set('version', this.VERSION);
+            console.log('✅ تم تهيئة قاعدة البيانات بنجاح');
         } else {
-            console.error("Supabase SDK not loaded!");
-        }
-        
-        // In-memory cache for synchronous reads
-        this.state = {
-            settings: null,
-            users: [],
-            employees: [],
-            attendance: {}, // keyed by month
-            salary_details: {}, // keyed by month
-            treasury_txs: [],
-            suppliers: [],
-            supplier_txs: [],
-            archive: []
-        };
-    }
-
-    async init() {
-        // Show loading screen
-        let loader = document.createElement('div');
-        loader.id = 'supabaseLoader';
-        loader.innerHTML = `
-            <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:#0f172a;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Cairo,sans-serif;">
-                <div style="width:60px;height:60px;border:6px solid #1e293b;border-top-color:#10b981;border-radius:50%;animation:spin 1s linear infinite;"></div>
-                <h2 style="margin-top:20px; font-weight:bold;">جاري الاتصال بالسحابة (Supabase)...</h2>
-                <p style="color:#94a3b8; font-size:14px; margin-top:5px;" id="supabaseLoaderMsg">تحميل البيانات للمرة الأولى...</p>
-                <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
-            </div>
-        `;
-        document.body.appendChild(loader);
-
-        try {
-            // Migration is disabled for Supabase until SQL script is run
-            await this.migrateIfNeeded();
-
-            // Fetch all initial data
-            await Promise.all([
-                this._fetchCollection('settings', (data) => this.state.settings = data[0] || this._getDefaultSettings()),
-                this._fetchCollection('users', async (data) => {
-                    if (data.length === 0) {
-                        const defaultAdmin = { id: '1', name: 'المدير الرئيسي', username: 'admin', password: '123', permissions: ['*'], role: 'مدير نظام' };
-                        this.state.users = [defaultAdmin];
-                        await this.supabase.from('users').upsert(defaultAdmin);
-                    } else {
-                        this.state.users = data;
-                    }
-                }),
-                this._fetchCollection('employees', (data) => this.state.employees = data),
-                this._fetchCollection('treasury_txs', (data) => this.state.treasury_txs = data),
-                this._fetchCollection('suppliers', (data) => this.state.suppliers = data),
-                this._fetchCollection('supplier_txs', (data) => this.state.supplier_txs = data),
-                this._fetchCollection('archive', (data) => this.state.archive = data),
-                this._fetchCollectionMap('attendance', this.state.attendance),
-                this._fetchCollectionMap('salary_details', this.state.salary_details)
-            ]);
-
-            // Setup real-time listeners for updates from other devices
-            this._setupRealtime();
-
-        } catch (error) {
-            console.error("Supabase Error:", error);
-            alert("حدث خطأ في الاتصال! يرجى التأكد من أنك قمت بتشغيل كود SQL في Supabase وأنه لا توجد مشكلة في الشبكة.");
-        }
-
-        if(document.body.contains(loader)) {
-            document.body.removeChild(loader);
-        }
-    }
-
-    async migrateIfNeeded() {
-        const migrated = localStorage.getItem('almahaba_migrated_to_supabase');
-        if (migrated) return;
-
-        const lsEmployees = JSON.parse(localStorage.getItem('almahaba_employees') || '[]');
-        if (lsEmployees.length === 0) {
-            localStorage.setItem('almahaba_migrated_to_supabase', 'true');
-            return;
-        }
-
-        const msg = document.getElementById('supabaseLoaderMsg');
-        if (msg) msg.innerText = "جاري ترحيل بياناتك القديمة إلى السحابة... الرجاء الانتظار";
-        console.log("Migrating local data to Supabase...");
-
-        // 1. Settings
-        const lsSettings = JSON.parse(localStorage.getItem('almahaba_settings') || 'null');
-        if (lsSettings) {
-            lsSettings.id = 'global';
-            await this.supabase.from('settings').upsert(lsSettings);
-        }
-
-        // 2. Employees
-        if (lsEmployees.length > 0) {
-            await this.supabase.from('employees').upsert(lsEmployees);
-        }
-
-        // 3. Treasury
-        const lsTreasury = JSON.parse(localStorage.getItem('almahaba_treasury_txs') || '[]');
-        if (lsTreasury.length > 0) await this.supabase.from('treasury_txs').upsert(lsTreasury);
-
-        // 4. Suppliers
-        const lsSuppliers = JSON.parse(localStorage.getItem('almahaba_supp_suppliers') || '[]');
-        if (lsSuppliers.length > 0) await this.supabase.from('suppliers').upsert(lsSuppliers);
-
-        const lsSupplierTxs = JSON.parse(localStorage.getItem('almahaba_supp_transactions') || '[]');
-        if (lsSupplierTxs.length > 0) await this.supabase.from('supplier_txs').upsert(lsSupplierTxs);
-
-        // 5. Attendance & Salary details
-        for (let i = 0; i < localStorage.length; i++) {
-            let key = localStorage.key(i);
-            if (key.startsWith('almahaba_attendance_')) {
-                let month = key.replace('almahaba_attendance_', '');
-                let data = JSON.parse(localStorage.getItem(key));
-                await this.supabase.from('attendance').upsert({ month_key: month, data: data });
-            } else if (key.startsWith('almahaba_salary_details_')) {
-                let month = key.replace('almahaba_salary_details_', '');
-                let data = JSON.parse(localStorage.getItem(key));
-                await this.supabase.from('salary_details').upsert({ month_key: month, data: data });
+            console.log('📂 قاعدة البيانات موجودة بالفعل');
+            // تأكد من وجود جدول المستخدمين في التحديث
+            if (!this.get('users')) {
+                this.set('users', [{
+                    id: 1,
+                    username: 'admin',
+                    password: '123',
+                    name: 'المدير الرئيسي',
+                    role: 'admin',
+                    permissions: ['*']
+                }]);
             }
         }
 
-        localStorage.setItem('almahaba_migrated_to_supabase', 'true');
-        console.log("Migration complete!");
+        // تحديث الحضور لشهر يونيو 2026 من ملف الإكسيل الجديد (بدون سلف أو بونص)
+        if (!this.get('attendance_updated_june2026_v5')) {
+            console.log('🔄 تحديث حضور شهر يونيو 2026 من الشيت...');
+            const attendance = this.get('attendance') || {};
+            attendance['2026-06'] = {
+                1: { 1:'present', 2:'present', 3:'present', 4:'present', 5:'present', 6:'present', 7:'leave', 8:'present', 9:'present', 10:'present', 11:'present', 12:'present', 13:'present', 14:'leave', 15:'present', 16:'present', 17:'present', 18:'present', 19:'present', 20:'present', 21:'leave', 22:'present', 23:'present', 24:'present', 25:'present', 26:'present', 27:'present', 28:'leave', 29:'present' },
+                2: { 1:'late_3', 2:'half_day', 3:'half_day', 4:'half_day', 5:'present', 6:'half_day', 7:'leave', 8:'half_day', 9:'present', 10:'present', 11:'present', 12:'present', 13:'present', 14:'leave', 15:'present', 16:'present', 17:'present', 18:'present', 19:'late_2', 20:'late_1', 21:'leave', 22:'absent', 23:'late_2', 24:'late_2', 25:'half_day', 26:'present', 27:'half_day', 28:'leave', 29:'half_day' },
+                3: { 1:'absent', 2:'late_2', 3:'late_2', 4:'half_day', 5:'present', 6:'half_day', 7:'leave', 8:'half_day', 9:'half_day', 10:'late_1', 11:'half_day', 12:'absent', 13:'absent', 14:'present', 15:'half_day', 16:'present', 17:'present', 18:'present', 19:'late_2', 20:'late_1', 21:'leave', 22:'present', 23:'late_2', 24:'present', 25:'half_day', 26:'present', 27:'half_day', 28:'leave', 29:'present' },
+                4: { 1:'absent', 2:'absent', 3:'absent', 4:'absent', 5:'absent', 6:'absent', 7:'leave', 8:'absent', 9:'absent', 10:'absent', 11:'absent', 12:'absent', 13:'absent', 14:'leave', 15:'absent', 16:'absent', 17:'absent', 18:'absent', 19:'absent', 20:'absent', 21:'absent', 22:'absent', 23:'absent', 24:'absent', 25:'absent', 26:'half_day', 27:'half_day', 28:'leave', 29:'present' },
+                5: { 1:'absent', 2:'absent', 3:'absent', 4:'absent', 5:'absent', 6:'absent', 7:'leave', 8:'absent', 9:'absent', 10:'absent', 11:'absent', 12:'absent', 13:'absent', 14:'absent', 15:'absent', 16:'half_day', 17:'present', 18:'half_day', 19:'late_2', 20:'late_1', 21:'leave', 22:'half_day', 23:'present', 24:'present', 25:'present', 26:'absent', 27:'late_2', 28:'leave', 29:'present' }
+            };
+            this.set('attendance', attendance);
+            this.set('attendance_updated_june2026_v5', true);
+            console.log('✅ تم تحديث بيانات الحضور فقط v5');
+        }
     }
 
-    async _fetchCollection(table, callback) {
-        const { data, error } = await this.supabase.from(table).select('*');
-        if (!error && data) {
-            callback(data);
+    /**
+     * تهيئة بيانات الموظفين الافتراضية
+     * @private
+     */
+    _initDefaultEmployees() {
+        const employees = [
+            {
+                id: 1,
+                name: 'حاتم',
+                baseSalary: 13000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            },
+            {
+                id: 2,
+                name: 'خوليو',
+                baseSalary: 8000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            },
+            {
+                id: 3,
+                name: 'فهد',
+                baseSalary: 8000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            },
+            {
+                id: 4,
+                name: 'حمص',
+                baseSalary: 4000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            },
+            {
+                id: 5,
+                name: 'محمد',
+                baseSalary: 6000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            }
+        ];
+
+        this.set('employees', employees);
+        this.set('nextEmployeeId', 6);
+    }
+
+    /**
+     * تهيئة الإعدادات الافتراضية
+     * @private
+     */
+    _initDefaultSettings() {
+        const settings = {
+            theme: 'dark',
+            overtimeRate: 100,       // بدل الأوفرتايم بالجنيه لكل يوم
+            workHoursPerDay: 10,     // ساعات العمل اليومية
+            weeklyOff: 'sunday',     // يوم الإجازة الأسبوعية
+            companyName: 'شركة المحبة لقطع الغيار',
+            systemTitle: 'نظام إدارة الحضور والمرتبات'
+        };
+
+        this.set('settings', settings);
+    }
+
+    /**
+     * تهيئة بيانات الحضور الافتراضية لشهر يونيو 2026
+     * @private
+     */
+    _initDefaultAttendance() {
+        const month = '2026-06'; // يونيو 2026
+
+        const attendance = {};
+
+        // حاتم (id: 1)
+        attendance[1] = { 1:'present', 2:'present', 3:'present', 4:'present', 5:'present', 6:'present', 7:'leave', 8:'present', 9:'present', 10:'present', 11:'present', 12:'present', 13:'present', 14:'leave', 15:'present', 16:'present', 17:'present', 18:'present', 19:'present', 20:'present', 21:'leave', 22:'present', 23:'present', 24:'present', 25:'present', 26:'present', 27:'present', 28:'leave', 29:'present' };
+
+        // خوليو (id: 2)
+        attendance[2] = { 1:'late_3', 2:'half_day', 3:'half_day', 4:'half_day', 5:'present', 6:'half_day', 7:'leave', 8:'half_day', 9:'present', 10:'present', 11:'present', 12:'present', 13:'present', 14:'leave', 15:'present', 16:'present', 17:'present', 18:'present', 19:'late_2', 20:'late_1', 21:'leave', 22:'absent', 23:'late_2', 24:'late_2', 25:'half_day', 26:'present', 27:'half_day', 28:'leave', 29:'half_day' };
+
+        // فهد (id: 3)
+        attendance[3] = { 1:'absent', 2:'late_2', 3:'late_2', 4:'half_day', 5:'present', 6:'half_day', 7:'leave', 8:'half_day', 9:'half_day', 10:'late_1', 11:'half_day', 12:'absent', 13:'absent', 14:'present', 15:'half_day', 16:'present', 17:'present', 18:'present', 19:'late_2', 20:'late_1', 21:'leave', 22:'present', 23:'late_2', 24:'present', 25:'half_day', 26:'present', 27:'half_day', 28:'leave', 29:'present' };
+
+        // حمص (id: 4)
+        attendance[4] = { 1:'absent', 2:'absent', 3:'absent', 4:'absent', 5:'absent', 6:'absent', 7:'leave', 8:'absent', 9:'absent', 10:'absent', 11:'absent', 12:'absent', 13:'absent', 14:'leave', 15:'absent', 16:'absent', 17:'absent', 18:'absent', 19:'absent', 20:'absent', 21:'absent', 22:'absent', 23:'absent', 24:'absent', 25:'absent', 26:'half_day', 27:'half_day', 28:'leave', 29:'present' };
+
+        // محمد (id: 5)
+        attendance[5] = { 1:'absent', 2:'absent', 3:'absent', 4:'absent', 5:'absent', 6:'absent', 7:'leave', 8:'absent', 9:'absent', 10:'absent', 11:'absent', 12:'absent', 13:'absent', 14:'absent', 15:'absent', 16:'half_day', 17:'present', 18:'half_day', 19:'late_2', 20:'late_1', 21:'leave', 22:'half_day', 23:'present', 24:'present', 25:'present', 26:'absent', 27:'late_2', 28:'leave', 29:'present' };
+
+        this.saveAttendance(month, attendance);
+    }
+
+    /**
+     * تهيئة تفاصيل المرتبات الافتراضية لشهر يونيو 2026
+     * @private
+     */
+    _initDefaultSalaryDetails() {
+        const month = '2026-06';
+
+        /*
+         * هيكل تفاصيل المرتبات:
+         * { "employeeId": { advances, bonus, overtimeDays, notes } }
+         * الحقول الإضافية مثل السلف والمكافآت يدخلها المستخدم
+         */
+        const salaryDetails = {
+            1: { advances: 0, bonus: 0, overtimeDays: 0, notes: '' },
+            2: { advances: 0, bonus: 0, overtimeDays: 0, notes: '' },
+            3: { advances: 300, bonus: 0, overtimeDays: 0, notes: 'سلفة 300 جنيه' },
+            4: { advances: 0, bonus: 0, overtimeDays: 0, notes: '' },
+            5: { advances: 0, bonus: 0, overtimeDays: 0, notes: '' }
+        };
+
+        this.saveSalaryDetails(month, salaryDetails);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       عمليات التخزين الأساسية (Core Storage Operations)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * قراءة قيمة من التخزين المحلي
+     * @param {string} key - مفتاح البيانات
+     * @returns {*} القيمة المخزنة أو null
+     */
+    get(key) {
+        try {
+            const data = localStorage.getItem(this.PREFIX + key);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            console.error(`❌ خطأ في قراءة المفتاح: ${key}`, error);
+            return null;
+        }
+    }
+
+    /**
+     * حفظ قيمة في التخزين المحلي
+     * @param {string} key - مفتاح البيانات
+     * @param {*} value - القيمة المراد حفظها
+     */
+    set(key, value) {
+        try {
+            localStorage.setItem(this.PREFIX + key, JSON.stringify(value));
+        } catch (error) {
+            console.error(`❌ خطأ في حفظ المفتاح: ${key}`, error);
+            // التحقق من امتلاء التخزين
+            if (error.name === 'QuotaExceededError') {
+                console.error('⚠️ مساحة التخزين ممتلئة!');
+            }
+        }
+    }
+
+    /**
+     * حذف قيمة من التخزين المحلي
+     * @param {string} key - مفتاح البيانات
+     */
+    remove(key) {
+        localStorage.removeItem(this.PREFIX + key);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       إدارة الموظفين (Employee Management)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على قائمة جميع الموظفين
+     * @param {boolean} [activeOnly=true] - إرجاع الموظفين النشطين فقط
+     * @returns {Array} قائمة الموظفين
+     */
+    getEmployees(activeOnly = true) {
+        const employees = this.get('employees') || [];
+        if (activeOnly) {
+            return employees.filter(emp => emp.active !== false);
+        }
+        return employees;
+    }
+
+    /**
+     * الحصول على موظف بواسطة المعرف
+     * @param {number} id - معرف الموظف
+     * @returns {Object|null} بيانات الموظف
+     */
+    getEmployeeById(id) {
+        const employees = this.get('employees') || [];
+        return employees.find(emp => emp.id === id) || null;
+    }
+
+    /**
+     * حفظ/تحديث بيانات موظف
+     * @param {Object} employee - بيانات الموظف
+     * @returns {Object} الموظف بعد الحفظ
+     */
+    saveEmployee(employee) {
+        const employees = this.get('employees') || [];
+
+        if (employee.id) {
+            // تحديث موظف موجود
+            const index = employees.findIndex(emp => emp.id === employee.id);
+            if (index !== -1) {
+                employees[index] = { ...employees[index], ...employee };
+            }
         } else {
-            callback([]);
+            // إضافة موظف جديد
+            const nextId = this.get('nextEmployeeId') || 1;
+            employee.id = nextId;
+            employee.active = true;
+            employees.push(employee);
+            this.set('nextEmployeeId', nextId + 1);
+        }
+
+        this.set('employees', employees);
+        return employee;
+    }
+
+    /**
+     * حذف موظف (حذف ناعم - تعطيل)
+     * @param {number} id - معرف الموظف
+     */
+    deleteEmployee(id) {
+        const employees = this.get('employees') || [];
+        const index = employees.findIndex(emp => emp.id === id);
+        if (index !== -1) {
+            employees[index].active = false;
+            this.set('employees', employees);
         }
     }
 
-    async _fetchCollectionMap(table, stateObj) {
-        const { data, error } = await this.supabase.from(table).select('*');
-        if (!error && data) {
-            data.forEach(row => {
-                stateObj[row.month_key] = row.data;
-            });
+    /**
+     * حذف موظف نهائياً
+     * @param {number} id - معرف الموظف
+     */
+    hardDeleteEmployee(id) {
+        const employees = this.get('employees') || [];
+        const filtered = employees.filter(emp => emp.id !== id);
+        this.set('employees', filtered);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       إدارة الحضور (Attendance Management)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على بيانات الحضور لشهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} بيانات الحضور
+     */
+    getAttendance(month) {
+        return this.get(`attendance_${month}`) || {};
+    }
+
+    /**
+     * حفظ بيانات الحضور لشهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @param {Object} data - بيانات الحضور
+     */
+    saveAttendance(month, data) {
+        this.set(`attendance_${month}`, data);
+    }
+
+    /**
+     * تحديث حضور موظف ليوم معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @param {number} employeeId - معرف الموظف
+     * @param {number} day - رقم اليوم
+     * @param {string} type - نوع الحضور
+     */
+    updateAttendanceCell(month, employeeId, day, type) {
+        const attendance = this.getAttendance(month);
+        if (!attendance[employeeId]) {
+            attendance[employeeId] = {};
         }
-    }
 
-    _setupRealtime() {
-        this.supabase
-            .channel('public:*')
-            .on('postgres_changes', { event: '*', schema: 'public' }, payload => {
-                const table = payload.table;
-                const changeType = payload.eventType; // INSERT, UPDATE, DELETE
-                const newRow = payload.new;
-                const oldRow = payload.old;
-
-                if (table === 'settings') {
-                    if (changeType !== 'DELETE') this.state.settings = newRow;
-                }
-                else if (table === 'employees' || table === 'users') {
-                    if (changeType === 'DELETE') this.state[table] = this.state[table].filter(e => e.id !== oldRow.id);
-                    else if (changeType === 'INSERT') this.state[table].push(newRow);
-                    else if (changeType === 'UPDATE') {
-                        let idx = this.state[table].findIndex(e => e.id === newRow.id);
-                        if (idx >= 0) this.state[table][idx] = newRow;
-                    }
-                }
-                else if (table === 'attendance' || table === 'salary_details') {
-                    if (changeType === 'DELETE') delete this.state[table][oldRow.month_key];
-                    else this.state[table][newRow.month_key] = newRow.data;
-                }
-                else if (table === 'treasury_txs' || table === 'suppliers' || table === 'supplier_txs' || table === 'archive') {
-                    const idKey = (table === 'archive') ? 'month' : 'id';
-                    if (changeType === 'DELETE') this.state[table] = this.state[table].filter(e => e[idKey] !== oldRow[idKey]);
-                    else if (changeType === 'INSERT') this.state[table].push(newRow);
-                    else if (changeType === 'UPDATE') {
-                        let idx = this.state[table].findIndex(e => e[idKey] === newRow[idKey]);
-                        if (idx >= 0) this.state[table][idx] = newRow;
-                    }
-                }
-                
-                // Re-render UI on change
-                this._triggerRender();
-            })
-            .subscribe();
-    }
-
-    _triggerRender() {
-        if (window.App && typeof window.App.renderCurrentPage === 'function') {
-            window.App.renderCurrentPage();
-        } else if (window.App && typeof window.App.navigateTo === 'function') {
-            const hash = window.location.hash.replace('#', '') || 'dashboard';
-            window.App.navigateTo(hash, true);
+        if (type === '' || type === null || type === undefined) {
+            // مسح الحضور
+            delete attendance[employeeId][day];
+        } else {
+            attendance[employeeId][day] = type;
         }
+
+        this.saveAttendance(month, attendance);
     }
 
-    _auditInfo() {
-        const userStr = localStorage.getItem('almahaba_currentUser');
-        let createdBy = 'مدير النظام';
-        if (userStr) {
-            try {
-                createdBy = JSON.parse(userStr).username;
-            } catch(e) {}
+    /**
+     * حساب ملخص حضور موظف لشهر معين
+     * @param {number} employeeId - معرف الموظف
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} ملخص الحضور
+     */
+    getAttendanceSummary(employeeId, month) {
+        const attendance = this.getAttendance(month);
+        const empAttendance = attendance[employeeId] || {};
+
+        const summary = {
+            present: 0,        // أيام الحضور الكامل
+            absent: 0,         // أيام الغياب
+            leave: 0,          // أيام الإجازة
+            officialHoliday: 0, // إجازات رسمية
+            errand: 0,         // مأموريات
+            halfDay: 0,        // أيام نصف يوم
+            lateHours: 0,      // إجمالي ساعات التأخير
+            lateDays: 0,       // عدد أيام التأخير
+            totalWorked: 0     // إجمالي أيام العمل الفعلية
+        };
+
+        for (const [day, type] of Object.entries(empAttendance)) {
+            switch (type) {
+                case 'present':
+                    summary.present++;
+                    break;
+                case 'absent':
+                    summary.absent++;
+                    break;
+                case 'leave':
+                    summary.leave++;
+                    break;
+                case 'official_holiday':
+                    summary.officialHoliday++;
+                    break;
+                case 'errand':
+                    summary.errand++;
+                    break;
+                case 'half_day':
+                    summary.halfDay++;
+                    break;
+                case 'late_1':
+                case 'late_2':
+                case 'late_3':
+                case 'late_4':
+                case 'late_5':
+                    // استخراج عدد ساعات التأخير من نوع الحضور
+                    const hours = parseInt(type.split('_')[1]);
+                    summary.lateHours += hours;
+                    summary.lateDays++;
+                    break;
+            }
         }
-        return { created_by: createdBy, timestamp: new Date().toISOString() };
+
+        // حساب إجمالي أيام العمل الفعلية
+        // الحضور الكامل + المأمورية + أيام التأخير (تحسب حضور) + نصف يوم (0.5)
+        summary.totalWorked = summary.present + summary.errand + summary.lateDays + (summary.halfDay * 0.5);
+
+        return summary;
     }
 
-    _getDefaultSettings() {
-        return { id: 'global', theme: 'dark', overtimeRate: 100, workHoursPerDay: 10, weeklyOff: 'sunday' };
+    /* ═══════════════════════════════════════════════════════════════════════
+       إدارة المرتبات (Salary Management)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على تفاصيل المرتبات الإضافية لشهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} تفاصيل المرتبات
+     */
+    getSalaryDetails(month) {
+        return this.get(`salary_${month}`) || {};
     }
 
-    // ============================================
-    // API Methods (Used by UI)
-    // ============================================
-
-    getSettings() { return this.state.settings || this._getDefaultSettings(); }
-    async saveSettings(settings) {
-        settings.id = 'global';
-        this.state.settings = settings; // Optimistic update
-        await this.supabase.from('settings').upsert(settings);
+    /**
+     * حفظ تفاصيل المرتبات الإضافية لشهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @param {Object} data - تفاصيل المرتبات
+     */
+    saveSalaryDetails(month, data) {
+        this.set(`salary_${month}`, data);
     }
 
-    getEmployees() { return this.state.employees || []; }
-    async saveEmployee(emp) {
-        if (!emp.id) emp.id = Date.now().toString();
-        let idx = this.state.employees.findIndex(e => e.id === emp.id);
-        if (idx >= 0) this.state.employees[idx] = emp; else this.state.employees.push(emp);
-        await this.supabase.from('employees').upsert(emp);
-    }
-    async deleteEmployee(id) {
-        this.state.employees = this.state.employees.filter(e => e.id !== id.toString());
-        await this.supabase.from('employees').delete().eq('id', id.toString());
+    /**
+     * حساب مرتب موظف لشهر معين
+     * @param {number} employeeId - معرف الموظف
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} تفاصيل المرتب المحسوب
+     */
+    calculateSalary(employeeId, month) {
+        const employee = this.getEmployeeById(employeeId);
+        if (!employee) return null;
+
+        const settings = this.getSettings();
+        const summary = this.getAttendanceSummary(employeeId, month);
+        const details = this.getSalaryDetails(month);
+        const empDetails = details[employeeId] || { advances: 0, bonus: 0, overtimeDays: 0, notes: '' };
+
+        const baseSalary = employee.baseSalary;
+        const dailyRate = baseSalary / 30;
+        const hourlyRate = dailyRate / settings.workHoursPerDay;
+
+        // حساب الخصومات
+        const absenceDeduction = dailyRate * summary.absent;
+        const lateDeduction = hourlyRate * summary.lateHours;
+        const leaveDeduction = dailyRate * summary.leave; // الإجازات تُخصم من الرصيد
+
+        // حساب البدلات
+        const overtimeAllowance = empDetails.overtimeDays * settings.overtimeRate;
+
+        // صافي المرتب
+        const totalDeductions = absenceDeduction + lateDeduction + leaveDeduction + empDetails.advances;
+        const totalAdditions = empDetails.bonus + overtimeAllowance;
+        const netSalary = baseSalary - totalDeductions + totalAdditions;
+
+        return {
+            employeeId,
+            employeeName: employee.name,
+            baseSalary,
+            dailyRate,
+            hourlyRate,
+
+            // ملخص الحضور
+            presentDays: summary.present,
+            absentDays: summary.absent,
+            leaveDays: summary.leave,
+            halfDays: summary.halfDay,
+            lateHours: summary.lateHours,
+            lateDays: summary.lateDays,
+            officialHolidays: summary.officialHoliday,
+            errands: summary.errand,
+            totalWorked: summary.totalWorked,
+
+            // الخصومات
+            absenceDeduction,
+            lateDeduction,
+            leaveDeduction,
+
+            // الإضافات
+            overtimeDays: empDetails.overtimeDays,
+            overtimeAllowance,
+            bonus: empDetails.bonus,
+            advances: empDetails.advances,
+
+            // الإجماليات
+            totalDeductions,
+            totalAdditions,
+            netSalary,
+
+            notes: empDetails.notes
+        };
     }
 
-    getAttendance(monthKey) { return this.state.attendance[monthKey] || {}; }
-    async saveAttendance(monthKey, data) {
-        this.state.attendance[monthKey] = data;
-        await this.supabase.from('attendance').upsert({ month_key: monthKey, data: data });
+    /* ═══════════════════════════════════════════════════════════════════════
+       الإعدادات (Settings)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على الإعدادات
+     * @returns {Object} الإعدادات الحالية
+     */
+    getSettings() {
+        return this.get('settings') || {
+            theme: 'dark',
+            overtimeRate: 100,
+            workHoursPerDay: 10,
+            weeklyOff: 'sunday',
+            companyName: 'شركة المحبة لقطع الغيار',
+            systemTitle: 'نظام إدارة الحضور والمرتبات'
+        };
     }
 
-    getSalaryDetails(monthKey) { return this.state.salary_details[monthKey] || {}; }
-    async saveSalaryDetails(monthKey, data) {
-        this.state.salary_details[monthKey] = data;
-        await this.supabase.from('salary_details').upsert({ month_key: monthKey, data: data });
-    }
-
-    getArchive() { return this.state.archive || []; }
-    async saveArchiveMonth(monthData) {
-        let idx = this.state.archive.findIndex(e => e.month === monthData.month);
-        if (idx >= 0) this.state.archive[idx] = monthData; else this.state.archive.push(monthData);
-        await this.supabase.from('archive').upsert(monthData);
-    }
-
-    getTreasuryTxs() { return this.state.treasury_txs || []; }
-    async saveTreasuryTx(tx) {
-        if (!tx.id) tx.id = Date.now().toString();
-        const data = { ...tx, ...this._auditInfo() };
-        this.state.treasury_txs.push(data);
-        await this.supabase.from('treasury_txs').upsert(data);
-    }
-    async updateTreasuryTx(id, newData) {
-        const data = { ...newData, ...this._auditInfo() };
-        let idx = this.state.treasury_txs.findIndex(e => e.id === id.toString());
-        if (idx >= 0) this.state.treasury_txs[idx] = { ...this.state.treasury_txs[idx], ...data };
-        await this.supabase.from('treasury_txs').update(data).eq('id', id.toString());
-    }
-    async deleteTreasuryTx(id) {
-        this.state.treasury_txs = this.state.treasury_txs.filter(e => e.id !== id.toString());
-        await this.supabase.from('treasury_txs').delete().eq('id', id.toString());
-    }
-
-    getSuppliers() { return this.state.suppliers || []; }
-    async saveSupplier(sup) {
-        if (!sup.id) sup.id = Date.now().toString();
-        let idx = this.state.suppliers.findIndex(e => e.id === sup.id);
-        if (idx >= 0) this.state.suppliers[idx] = sup; else this.state.suppliers.push(sup);
-        await this.supabase.from('suppliers').upsert(sup);
-    }
-    async deleteSupplier(id) {
-        this.state.suppliers = this.state.suppliers.filter(e => e.id !== id.toString());
-        await this.supabase.from('suppliers').delete().eq('id', id.toString());
-    }
-    
-    getSupplierTxs() { return this.state.supplier_txs || []; }
-    async saveSupplierTx(tx) {
-        if (!tx.id) tx.id = Date.now().toString();
-        const data = { ...tx, ...this._auditInfo() };
-        this.state.supplier_txs.push(data);
-        await this.supabase.from('supplier_txs').upsert(data);
-    }
-    async updateSupplierTx(id, newData) {
-        const data = { ...newData, ...this._auditInfo() };
-        let idx = this.state.supplier_txs.findIndex(e => e.id === id.toString());
-        if (idx >= 0) this.state.supplier_txs[idx] = { ...this.state.supplier_txs[idx], ...data };
-        await this.supabase.from('supplier_txs').update(data).eq('id', id.toString());
-    }
-    async deleteSupplierTx(id) {
-        this.state.supplier_txs = this.state.supplier_txs.filter(e => e.id !== id.toString());
-        await this.supabase.from('supplier_txs').delete().eq('id', id.toString());
-    }
-
-    // ============================================
-    // Users & Auth Methods
-    // ============================================
-
-    getUsers() { return this.state.users || []; }
-
-    async addUser(user) {
-        if (!user.id) user.id = Date.now().toString();
-        let idx = this.state.users.findIndex(e => e.username === user.username);
-        if (idx >= 0) throw new Error('اسم المستخدم موجود مسبقاً');
+    /**
+     * حفظ الإعدادات
+     * @param {Object} settings - الإعدادات المحدثة
+     */
+    saveSettings(settings) {
+        const current = this.getSettings();
+        this.set('settings', { ...current, ...settings });
         
-        this.state.users.push(user);
-        await this.supabase.from('users').upsert(user);
+        // التهيئة لـ IndexedDB للصور والمرفقات
+        this.initIndexedDB().catch(e => console.error('Failed to init IndexedDB', e));
     }
 
-    async updateUser(id, data) {
-        let idx = this.state.users.findIndex(e => e.id === id.toString());
-        if (idx >= 0) {
-            this.state.users[idx] = { ...this.state.users[idx], ...data };
-            await this.supabase.from('users').update(data).eq('id', id.toString());
-        }
+    /* ═══════════════════════════════════════════════════════════════════════
+       5. الأرشيف والتصدير
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       إدارة المستخدمين والصلاحيات (Auth & RBAC)
+       ═══════════════════════════════════════════════════════════════════════ */
+    
+    getUsers() {
+        return this.get('users') || [];
     }
 
-    async deleteUser(id) {
-        if (id == 1 || id == '1') throw new Error('لا يمكن حذف المدير الرئيسي');
-        this.state.users = this.state.users.filter(e => e.id !== id.toString());
-        await this.supabase.from('users').delete().eq('id', id.toString());
+    getUser(id) {
+        return this.getUsers().find(u => u.id == id);
     }
 
     getUserByUsername(username) {
-        return this.state.users.find(u => u.username === username);
+        return this.getUsers().find(u => u.username === username);
+    }
+
+    addUser(user) {
+        const users = this.getUsers();
+        if (users.find(u => u.username === user.username)) {
+            throw new Error('اسم المستخدم موجود مسبقاً');
+        }
+        user.id = Date.now();
+        users.push(user);
+        this.set('users', users);
+    }
+
+    updateUser(id, data) {
+        const users = this.getUsers();
+        const index = users.findIndex(u => u.id == id);
+        if (index !== -1) {
+            // Check username conflict
+            if (data.username && data.username !== users[index].username) {
+                if (users.find(u => u.username === data.username)) {
+                    throw new Error('اسم المستخدم موجود مسبقاً');
+                }
+            }
+            users[index] = { ...users[index], ...data };
+            this.set('users', users);
+        }
+    }
+
+    deleteUser(id) {
+        const users = this.getUsers();
+        // Prevent deleting the main admin (id: 1)
+        if (id == 1) throw new Error('لا يمكن حذف المدير الرئيسي');
+        const newUsers = users.filter(u => u.id != id);
+        this.set('users', newUsers);
     }
 
     login(username, password) {
         const user = this.getUserByUsername(username);
         if (user && user.password === password) {
+            // Remove password from session
             const { password: _, ...sessionUser } = user;
-            sessionStorage.setItem('almahaba_currentUser', JSON.stringify(sessionUser));
+            sessionStorage.setItem(this.PREFIX + 'currentUser', JSON.stringify(sessionUser));
             return true;
         }
         return false;
     }
 
     logout() {
-        sessionStorage.removeItem('almahaba_currentUser');
+        sessionStorage.removeItem(this.PREFIX + 'currentUser');
     }
 
     getCurrentUser() {
-        const userStr = sessionStorage.getItem('almahaba_currentUser');
+        const userStr = sessionStorage.getItem(this.PREFIX + 'currentUser');
         return userStr ? JSON.parse(userStr) : null;
     }
 
     hasPermission(permission) {
         const user = this.getCurrentUser();
         if (!user) return false;
-        if (user.permissions && user.permissions.includes('*')) return true;
-        return user.permissions && user.permissions.includes(permission);
+        if (user.permissions.includes('*')) return true; // Super Admin
+        return user.permissions.includes(permission);
     }
 
-    exportData() {
-        const data = {
-            employees: this.state.employees,
-            settings: this.state.settings,
-            attendance: this.state.attendance,
-            salary_details: this.state.salary_details,
-            treasury_txs: this.state.treasury_txs,
-            suppliers: this.state.suppliers,
-            supplier_txs: this.state.supplier_txs
+    _auditInfo() {
+        const user = this.getCurrentUser();
+        return {
+            createdBy: user ? user.name : 'مجهول',
+            createdAt: new Date().toISOString()
         };
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "almahaba_supabase_backup.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
     }
 
+    /* ═══════════════════════════════════════════════════════════════════════
+       2. الموظفين (Employees)
+       ═══════════════════════════════════════════════════════════════════════ */
+    getSuppliers() {
+        return this.get('suppliers') || [];
+    }
+
+    saveSupplier(supplier) {
+        const suppliers = this.getSuppliers();
+        if (supplier.id) {
+            const index = suppliers.findIndex(s => s.id == supplier.id);
+            if (index !== -1) {
+                // Keep the original createdBy if it exists
+                supplier.createdBy = suppliers[index].createdBy;
+                supplier.createdAt = suppliers[index].createdAt;
+                suppliers[index] = { ...suppliers[index], ...supplier };
+            }
+        } else {
+            supplier.id = Date.now();
+            Object.assign(supplier, this._auditInfo());
+            suppliers.push(supplier);
+        }
+        this.set('suppliers', suppliers);
+        return supplier.id;
+    }
+
+    addSupplier(supplier) {
+        const suppliers = this.getSuppliers();
+        supplier.id = Date.now();
+        Object.assign(supplier, this._auditInfo());
+        suppliers.push(supplier);
+        this.set('suppliers', suppliers);
+    }
+
+    deleteSupplier(id) {
+        let suppliers = this.getSuppliers();
+        suppliers = suppliers.filter(s => s.id != id);
+        this.set('suppliers', suppliers);
+        this.deleteImage(id).catch(e => console.error('Failed to delete supplier image', e));
+    }
+
+    getSupplierTxs() {
+        return this.get('supplier_txs') || [];
+    }
+
+    addSupplierTx(tx) {
+        const txs = this.getSupplierTxs();
+        tx.id = Date.now();
+        Object.assign(tx, this._auditInfo());
+        txs.push(tx);
+        this.set('supplier_txs', txs);
+        return tx.id;
+    }
+
+    updateSupplierTx(id, newData) {
+        const txs = this.getSupplierTxs();
+        const index = txs.findIndex(t => t.id == id);
+        if (index !== -1) {
+            txs[index] = { ...txs[index], ...newData, ...this._auditInfo() }; // Audit update
+            this.set('supplier_txs', txs);
+        }
+    }
+
+    deleteSupplierTx(id) {
+        let txs = this.getSupplierTxs();
+        txs = txs.filter(t => t.id != id);
+        this.set('supplier_txs', txs);
+        this.deleteImage(id).catch(e => console.error(e));
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       7. الخزنة (Treasury)
+       ═══════════════════════════════════════════════════════════════════════ */
+    getTreasuryTxs() {
+        return this.get('treasury_txs') || [];
+    }
+
+    addTreasuryTx(tx) {
+        const txs = this.getTreasuryTxs();
+        tx.id = Date.now();
+        Object.assign(tx, this._auditInfo());
+        txs.push(tx);
+        this.set('treasury_txs', txs);
+        return tx.id;
+    }
+
+    updateTreasuryTx(id, newData) {
+        const txs = this.getTreasuryTxs();
+        const index = txs.findIndex(t => t.id == id);
+        if (index !== -1) {
+            txs[index] = { ...txs[index], ...newData, ...this._auditInfo() };
+            this.set('treasury_txs', txs);
+        }
+    }
+
+    deleteTreasuryTx(id) {
+        let txs = this.getTreasuryTxs();
+        txs = txs.filter(t => t.id != id);
+        this.set('treasury_txs', txs);
+        this.deleteImage(id).catch(e => console.error(e));
+    }
+
+    async _initIndexedDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('AlMahaba_DB', 1);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result);
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('images')) {
+                    db.createObjectStore('images');
+                }
+            };
+        });
+    }
+
+    async saveImage(id, dataUrl) {
+        const db = await this._initIndexedDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('images', 'readwrite');
+            const store = tx.objectStore('images');
+            const request = store.put(dataUrl, id.toString());
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async getImage(id) {
+        const db = await this._initIndexedDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('images', 'readonly');
+            const store = tx.objectStore('images');
+            const request = store.get(id.toString());
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async deleteImage(id) {
+        const db = await this._initIndexedDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('images', 'readwrite');
+            const store = tx.objectStore('images');
+            const request = store.delete(id.toString());
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    /**
+     * الحصول على قائمة الأرشيف
+     * @returns {Array} قائمة الأشهر المؤرشفة
+     */
+    getArchive() {
+        return this.get('archive') || [];
+    }
+
+    /**
+     * أرشفة شهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} بيانات الأرشيف
+     */
+    archiveMonth(month) {
+        const archive = this.getArchive();
+
+        // التحقق من عدم وجود أرشيف مسبق لنفس الشهر
+        const existing = archive.find(a => a.month === month);
+        if (existing) {
+            // تحديث الأرشيف الموجود
+            existing.attendance = this.getAttendance(month);
+            existing.salaryDetails = this.getSalaryDetails(month);
+            existing.employees = this.getEmployees(false);
+            existing.updatedAt = new Date().toISOString();
+        } else {
+            // إنشاء أرشيف جديد
+            archive.push({
+                month,
+                attendance: this.getAttendance(month),
+                salaryDetails: this.getSalaryDetails(month),
+                employees: this.getEmployees(false),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
+        }
+
+        // ترتيب حسب الشهر تنازلياً
+        archive.sort((a, b) => b.month.localeCompare(a.month));
+        this.set('archive', archive);
+
+        return archive;
+    }
+
+    /**
+     * حذف أرشيف شهر
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     */
+    deleteArchive(month) {
+        const archive = this.getArchive();
+        const filtered = archive.filter(a => a.month !== month);
+        this.set('archive', filtered);
+    }
+
+    /**
+     * استعادة بيانات من الأرشيف
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     */
+    restoreFromArchive(month) {
+        const archive = this.getArchive();
+        const entry = archive.find(a => a.month === month);
+        if (entry) {
+            this.saveAttendance(month, entry.attendance);
+            this.saveSalaryDetails(month, entry.salaryDetails);
+        }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       التصدير والاستيراد (Export & Import)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * تصدير جميع البيانات كملف JSON
+     * @returns {Object} جميع بيانات النظام
+     */
+    exportData() {
+        const allData = {};
+        const prefix = this.PREFIX;
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(prefix)) {
+                const cleanKey = key.replace(prefix, '');
+                try {
+                    allData[cleanKey] = JSON.parse(localStorage.getItem(key));
+                } catch {
+                    allData[cleanKey] = localStorage.getItem(key);
+                }
+            }
+        }
+
+        return {
+            exportDate: new Date().toISOString(),
+            version: this.VERSION,
+            appName: 'شركة المحبة لقطع الغيار - نظام الحضور والمرتبات',
+            data: allData
+        };
+    }
+
+    /**
+     * استيراد بيانات من ملف JSON
+     * @param {string} jsonString - البيانات المستوردة كـ JSON string
+     * @returns {boolean} نجاح العملية
+     */
     importData(jsonString) {
-        alert('خاصية استيراد الملفات تعطلت أثناء التخزين السحابي لضمان سلامة التزامن.');
+        try {
+            const data = JSON.parse(jsonString);
+            Object.keys(data).forEach(key => {
+                this.set(key, data[key]);
+            });
+            return true;
+        } catch (e) {
+            console.error('خطأ في استيراد البيانات:', e);
+            return false;
+        }
+    }
+
+    /**
+     * مسح جميع بيانات التطبيق
+     */
+    clearAll() {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(this.PREFIX)) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+    }
+
+    /**
+     * إعادة تعيين قاعدة البيانات (مسح + إعادة تهيئة)
+     */
+    reset() {
+        this.clearAll();
+        this.init();
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       أدوات مساعدة (Utilities)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على قائمة الأشهر المتاحة (التي بها بيانات حضور)
+     * @returns {Array<string>} قائمة الأشهر بصيغة 'YYYY-MM'
+     */
+    getAvailableMonths() {
+        const months = new Set();
+        const prefix = this.PREFIX + 'attendance_';
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(prefix)) {
+                months.add(key.replace(prefix, ''));
+            }
+        }
+
+        // إضافة الشهر الحالي دائماً
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        months.add(currentMonth);
+
+        // ترتيب تنازلياً
+        return Array.from(months).sort((a, b) => b.localeCompare(a));
+    }
+
+    /**
+     * الحصول على حجم البيانات المخزنة (بالبايت تقريبياً)
+     * @returns {number} الحجم بالبايت
+     */
+    getStorageSize() {
+        let size = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(this.PREFIX)) {
+                size += key.length + (localStorage.getItem(key) || '').length;
+            }
+        }
+        return size * 2; // UTF-16
     }
 }
 
-window.DB = new DB();
+// ══════════════════════════════════════════════════════════════════════════════
+// إنشاء نسخة عامة من قاعدة البيانات
+// ══════════════════════════════════════════════════════════════════════════════
+const db = new DB();
+window.DB = db;
+
