@@ -8,12 +8,112 @@
  * يستخدم LocalStorage لحفظ البيانات بشكل دائم في المتصفح
  */
 class DB {
+    _toDb(obj) {
+        if (!obj || typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) return obj.map(o => this._toDb(o));
+        const res = {};
+        for (let k in obj) res[k.toLowerCase()] = obj[k];
+        return res;
+    }
+
+    _fromDb(obj) {
+        if (!obj || typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) return obj.map(o => this._fromDb(o));
+        const map = {
+            'overtimerate': 'overtimeRate', 'workhoursperday': 'workHoursPerDay', 'weeklyoff': 'weeklyOff',
+            'basesalary': 'baseSalary', 'leavebalance': 'leaveBalance', 'joindate': 'joinDate',
+            'initialbalance': 'initialBalance', 'supplierid': 'supplierId', 'invoiceno': 'invoiceNo',
+            'totalsalaries': 'totalSalaries', 'employeecount': 'employeeCount', 'attendancerate': 'attendanceRate'
+        };
+        const res = {};
+        for (let k in obj) res[map[k] || k] = obj[k];
+        return res;
+    }
+
+    async _syncToSupabase(key, value) {
+        if (!this.supabase) return;
+        try {
+            if (key === 'settings') {
+                await this.supabase.from('settings').upsert({ id: 'global', ...this._toDb(value) });
+            } else if (['employees', 'treasury_txs', 'suppliers', 'supplier_txs', 'users', 'archive'].includes(key)) {
+                if (Array.isArray(value) && value.length > 0) {
+                    await this.supabase.from(key).upsert(this._toDb(value));
+                }
+            } else if (key === 'attendance' || key === 'salary_details') {
+                const arr = Object.keys(value).map(k => ({ month_key: k, data: this._toDb(value[k]) }));
+                if (arr.length > 0) {
+                    await this.supabase.from(key).upsert(arr);
+                }
+            }
+        } catch(e) { console.error('Supabase Sync Error', e); }
+    }
+
+    async _fetchFromSupabase() {
+        if (!this.supabase) return;
+        console.log('Fetching all data from Supabase...');
+        try {
+            const fetchTable = async (table) => {
+                const { data } = await this.supabase.from(table).select('*');
+                return data ? this._fromDb(data) : null;
+            };
+            const [users, settings, employees, treasury_txs, suppliers, supplier_txs, archive, attendance, salary_details] = await Promise.all([
+                fetchTable('users'), fetchTable('settings'), fetchTable('employees'), fetchTable('treasury_txs'),
+                fetchTable('suppliers'), fetchTable('supplier_txs'), fetchTable('archive'), fetchTable('attendance'), fetchTable('salary_details')
+            ]);
+            
+            if (users && users.length > 0) this._setLocal('users', users);
+            if (settings && settings.length > 0) this._setLocal('settings', settings[0]);
+            if (employees && employees.length > 0) this._setLocal('employees', employees);
+            if (treasury_txs && treasury_txs.length > 0) this._setLocal('treasury_txs', treasury_txs);
+            if (suppliers && suppliers.length > 0) this._setLocal('suppliers', suppliers);
+            if (supplier_txs && supplier_txs.length > 0) this._setLocal('supplier_txs', supplier_txs);
+            if (archive && archive.length > 0) this._setLocal('archive', archive);
+            
+            if (attendance && Object.keys(attendance).length > 0) {
+                const attMap = {}; attendance.forEach(r => attMap[r.month_key] = r.data);
+                this._setLocal('attendance', attMap);
+            }
+            if (salary_details && Object.keys(salary_details).length > 0) {
+                const salMap = {}; salary_details.forEach(r => salMap[r.month_key] = r.data);
+                this._setLocal('salary_details', salMap);
+            }
+            console.log('✅ Supabase Fetch Complete');
+        } catch(e) { console.error('Fetch error', e); }
+    }
+
+    async _syncAllToSupabase() {
+        if (!this.supabase || localStorage.getItem('almahaba_synced_v4')) return;
+        
+        if(window.showToast) {
+            window.showToast('🚀 جاري رفع داتا شركتك إلى السحابة لأول مرة...', 'info');
+        } else {
+            alert('جاري رفع الداتا للسحابة...');
+        }
+        
+        console.log('Pushing all local data to Supabase...');
+        await this._syncToSupabase('users', this.get('users'));
+        await this._syncToSupabase('settings', this.get('settings'));
+        await this._syncToSupabase('employees', this.get('employees'));
+        await this._syncToSupabase('treasury_txs', this.get('treasury_txs'));
+        await this._syncToSupabase('suppliers', this.get('suppliers'));
+        await this._syncToSupabase('supplier_txs', this.get('supplier_txs'));
+        await this._syncToSupabase('attendance', this.get('attendance'));
+        await this._syncToSupabase('salary_details', this.get('salary_details'));
+        await this._syncToSupabase('archive', this.get('archive'));
+        localStorage.setItem('almahaba_synced_v4', 'true');
+        
+        if(window.showToast) {
+            setTimeout(() => window.showToast('✅ تمت المزامنة بنجاح! السحابة الآن جاهزة.', 'success'), 2000);
+        }
+    }
+
     constructor() {
         /** @type {string} بادئة مفاتيح التخزين لمنع التعارض */
         this.PREFIX = 'almahaba_';
         
         /** @type {string} إصدار قاعدة البيانات */
         this.VERSION = '1.0.0';
+        if (window.supabase) this.supabase = window.supabase.createClient('https://qcppvkjfsxuctgbylcpm.supabase.co', 'sb_publishable_i43B3x7fbi_nT0xSfpBEmA_7_sjBA-A');
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
@@ -45,8 +145,10 @@ class DB {
             this.set('initialized', true);
             this.set('version', this.VERSION);
             console.log('✅ تم تهيئة قاعدة البيانات بنجاح');
+            this._fetchFromSupabase().then(() => this._syncAllToSupabase());
         } else {
             console.log('📂 قاعدة البيانات موجودة بالفعل');
+            this._fetchFromSupabase().then(() => this._syncAllToSupabase());
             // تأكد من وجود جدول المستخدمين في التحديث
             if (!this.get('users')) {
                 this.set('users', [{
@@ -231,6 +333,11 @@ class DB {
      * @param {*} value - القيمة المراد حفظها
      */
     set(key, value) {
+        this._setLocal(key, value);
+        this._syncToSupabase(key, value);
+    }
+
+    _setLocal(key, value) {
         try {
             localStorage.setItem(this.PREFIX + key, JSON.stringify(value));
         } catch (error) {
@@ -308,7 +415,7 @@ class DB {
      * حذف موظف (حذف ناعم - تعطيل)
      * @param {number} id - معرف الموظف
      */
-    deleteEmployee(id) {
+    deleteEmployee(id) { if(this.supabase) this.supabase.from('employees').delete().eq('id', id.toString()); 
         const employees = this.get('employees') || [];
         const index = employees.findIndex(emp => emp.id === id);
         if (index !== -1) {
@@ -321,7 +428,7 @@ class DB {
      * حذف موظف نهائياً
      * @param {number} id - معرف الموظف
      */
-    hardDeleteEmployee(id) {
+    hardDeleteEmployee(id) { if(this.supabase) this.supabase.from('employees').delete().eq('id', id.toString());  if(this.supabase) this.supabase.from('employees').delete().eq('id', id.toString()); 
         const employees = this.get('employees') || [];
         const filtered = employees.filter(emp => emp.id !== id);
         this.set('employees', filtered);
@@ -602,7 +709,7 @@ class DB {
         }
     }
 
-    deleteUser(id) {
+    deleteUser(id) { if(this.supabase) this.supabase.from('users').delete().eq('id', id.toString()); 
         const users = this.getUsers();
         // Prevent deleting the main admin (id: 1)
         if (id == 1) throw new Error('لا يمكن حذف المدير الرئيسي');
@@ -679,7 +786,7 @@ class DB {
         this.set('suppliers', suppliers);
     }
 
-    deleteSupplier(id) {
+    deleteSupplier(id) { if(this.supabase) this.supabase.from('suppliers').delete().eq('id', id.toString()); 
         let suppliers = this.getSuppliers();
         suppliers = suppliers.filter(s => s.id != id);
         this.set('suppliers', suppliers);
@@ -708,7 +815,7 @@ class DB {
         }
     }
 
-    deleteSupplierTx(id) {
+    deleteSupplierTx(id) { if(this.supabase) this.supabase.from('supplier_txs').delete().eq('id', id.toString()); 
         let txs = this.getSupplierTxs();
         txs = txs.filter(t => t.id != id);
         this.set('supplier_txs', txs);
@@ -740,7 +847,7 @@ class DB {
         }
     }
 
-    deleteTreasuryTx(id) {
+    deleteTreasuryTx(id) { if(this.supabase) this.supabase.from('treasury_txs').delete().eq('id', id.toString()); 
         let txs = this.getTreasuryTxs();
         txs = txs.filter(t => t.id != id);
         this.set('treasury_txs', txs);
@@ -841,7 +948,7 @@ class DB {
      * حذف أرشيف شهر
      * @param {string} month - الشهر بصيغة 'YYYY-MM'
      */
-    deleteArchive(month) {
+    deleteArchive(month) { if(this.supabase) this.supabase.from('archive').delete().eq('month', month.toString()); 
         const archive = this.getArchive();
         const filtered = archive.filter(a => a.month !== month);
         this.set('archive', filtered);
@@ -981,4 +1088,7 @@ class DB {
 // ══════════════════════════════════════════════════════════════════════════════
 const db = new DB();
 window.DB = db;
+
+
+
 
