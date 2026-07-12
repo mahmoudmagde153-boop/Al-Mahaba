@@ -15,6 +15,7 @@ class DB {
         // In-memory cache for synchronous reads
         this.state = {
             settings: null,
+            users: [],
             employees: [],
             attendance: {}, // keyed by month
             salary_details: {}, // keyed by month
@@ -46,6 +47,15 @@ class DB {
             // Fetch all initial data
             await Promise.all([
                 this._fetchCollection('settings', (data) => this.state.settings = data[0] || this._getDefaultSettings()),
+                this._fetchCollection('users', async (data) => {
+                    if (data.length === 0) {
+                        const defaultAdmin = { id: '1', name: 'المدير الرئيسي', username: 'admin', password: '123', permissions: ['*'], role: 'مدير نظام' };
+                        this.state.users = [defaultAdmin];
+                        await this.supabase.from('users').upsert(defaultAdmin);
+                    } else {
+                        this.state.users = data;
+                    }
+                }),
                 this._fetchCollection('employees', (data) => this.state.employees = data),
                 this._fetchCollection('treasury_txs', (data) => this.state.treasury_txs = data),
                 this._fetchCollection('suppliers', (data) => this.state.suppliers = data),
@@ -153,12 +163,12 @@ class DB {
                 if (table === 'settings') {
                     if (changeType !== 'DELETE') this.state.settings = newRow;
                 }
-                else if (table === 'employees') {
-                    if (changeType === 'DELETE') this.state.employees = this.state.employees.filter(e => e.id !== oldRow.id);
-                    else if (changeType === 'INSERT') this.state.employees.push(newRow);
+                else if (table === 'employees' || table === 'users') {
+                    if (changeType === 'DELETE') this.state[table] = this.state[table].filter(e => e.id !== oldRow.id);
+                    else if (changeType === 'INSERT') this.state[table].push(newRow);
                     else if (changeType === 'UPDATE') {
-                        let idx = this.state.employees.findIndex(e => e.id === newRow.id);
-                        if (idx >= 0) this.state.employees[idx] = newRow;
+                        let idx = this.state[table].findIndex(e => e.id === newRow.id);
+                        if (idx >= 0) this.state[table][idx] = newRow;
                     }
                 }
                 else if (table === 'attendance' || table === 'salary_details') {
@@ -293,6 +303,65 @@ class DB {
     async deleteSupplierTx(id) {
         this.state.supplier_txs = this.state.supplier_txs.filter(e => e.id !== id.toString());
         await this.supabase.from('supplier_txs').delete().eq('id', id.toString());
+    }
+
+    // ============================================
+    // Users & Auth Methods
+    // ============================================
+
+    getUsers() { return this.state.users || []; }
+
+    async addUser(user) {
+        if (!user.id) user.id = Date.now().toString();
+        let idx = this.state.users.findIndex(e => e.username === user.username);
+        if (idx >= 0) throw new Error('اسم المستخدم موجود مسبقاً');
+        
+        this.state.users.push(user);
+        await this.supabase.from('users').upsert(user);
+    }
+
+    async updateUser(id, data) {
+        let idx = this.state.users.findIndex(e => e.id === id.toString());
+        if (idx >= 0) {
+            this.state.users[idx] = { ...this.state.users[idx], ...data };
+            await this.supabase.from('users').update(data).eq('id', id.toString());
+        }
+    }
+
+    async deleteUser(id) {
+        if (id == 1 || id == '1') throw new Error('لا يمكن حذف المدير الرئيسي');
+        this.state.users = this.state.users.filter(e => e.id !== id.toString());
+        await this.supabase.from('users').delete().eq('id', id.toString());
+    }
+
+    getUserByUsername(username) {
+        return this.state.users.find(u => u.username === username);
+    }
+
+    login(username, password) {
+        const user = this.getUserByUsername(username);
+        if (user && user.password === password) {
+            const { password: _, ...sessionUser } = user;
+            sessionStorage.setItem('almahaba_currentUser', JSON.stringify(sessionUser));
+            return true;
+        }
+        return false;
+    }
+
+    logout() {
+        sessionStorage.removeItem('almahaba_currentUser');
+    }
+
+    getCurrentUser() {
+        const userStr = sessionStorage.getItem('almahaba_currentUser');
+        return userStr ? JSON.parse(userStr) : null;
+    }
+
+    hasPermission(permission) {
+        const user = this.getCurrentUser();
+        if (!user) return false;
+        if (user.permissions && user.permissions.includes('*')) return true;
+        return user.permissions && user.permissions.includes(permission);
     }
 
     exportData() {
