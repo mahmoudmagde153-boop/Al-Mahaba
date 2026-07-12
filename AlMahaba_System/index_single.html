@@ -1,0 +1,4818 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="نظام إدارة الحضور والمرتبات - شركة المحبة لقطع الغيار">
+    <meta name="theme-color" content="#0f172a">
+    <title>شركة المحبة لقطع الغيار | نظام الحضور والمرتبات</title>
+
+    <!-- Google Font: Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Main Stylesheet -->
+    <style>/* ╔══════════════════════════════════════════════════════════════════════════════╗
+   ║  شركة المحبة لقطع الغيار - نظام إدارة الحضور والمرتبات                    ║
+   ║  Premium CSS Stylesheet with Dark/Light Theme + Glassmorphism               ║
+   ╚══════════════════════════════════════════════════════════════════════════════╝ */
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   1. CSS Custom Properties (المتغيرات)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+    /* ── الألوان الأساسية ── */
+    --primary: #6366f1;
+    --primary-light: #818cf8;
+    --primary-dark: #4f46e5;
+    --primary-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+    --primary-gradient-hover: linear-gradient(135deg, #818cf8, #a78bfa);
+
+    --success: #10b981;
+    --success-light: #34d399;
+    --danger: #ef4444;
+    --danger-light: #f87171;
+    --warning: #f59e0b;
+    --warning-light: #fbbf24;
+    --info: #3b82f6;
+    --info-light: #60a5fa;
+
+    /* ── الخطوط ── */
+    --font-family: 'Cairo', sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+
+    /* ── الأبعاد ── */
+    --sidebar-width: 260px;
+    --sidebar-collapsed: 70px;
+    --header-height: 80px;
+    --border-radius: 16px;
+    --border-radius-sm: 10px;
+    --border-radius-xs: 6px;
+
+    /* ── الحركات ── */
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ── الظلال ── */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+/* ── الوضع الداكن (الافتراضي) ── */
+[data-theme="dark"] {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-card: rgba(30, 41, 59, 0.7);
+    --bg-card-hover: rgba(51, 65, 85, 0.8);
+    --bg-sidebar: rgba(15, 23, 42, 0.95);
+    --bg-input: rgba(51, 65, 85, 0.6);
+    --bg-table-stripe: rgba(51, 65, 85, 0.3);
+    --bg-modal-overlay: rgba(0, 0, 0, 0.6);
+
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-inverse: #0f172a;
+
+    --border-color: rgba(148, 163, 184, 0.15);
+    --border-color-light: rgba(148, 163, 184, 0.08);
+
+    --glass-bg: rgba(30, 41, 59, 0.6);
+    --glass-border: rgba(148, 163, 184, 0.12);
+    --glass-blur: 20px;
+
+    --scrollbar-track: #1e293b;
+    --scrollbar-thumb: #475569;
+}
+
+/* ── الوضع الفاتح ── */
+[data-theme="light"] {
+    --bg-primary: #f1f5f9;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e2e8f0;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --bg-card-hover: rgba(255, 255, 255, 0.95);
+    --bg-sidebar: rgba(255, 255, 255, 0.95);
+    --bg-input: rgba(241, 245, 249, 0.8);
+    --bg-table-stripe: rgba(241, 245, 249, 0.5);
+    --bg-modal-overlay: rgba(0, 0, 0, 0.4);
+
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --text-inverse: #f8fafc;
+
+    --border-color: rgba(148, 163, 184, 0.25);
+    --border-color-light: rgba(148, 163, 184, 0.12);
+
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(148, 163, 184, 0.2);
+    --glass-blur: 20px;
+
+    --scrollbar-track: #e2e8f0;
+    --scrollbar-thumb: #94a3b8;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   2. إعادة تعيين وأساسيات (Reset & Base)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    direction: rtl;
+    text-align: right;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+    line-height: 1.7;
+}
+
+/* خلفية متحركة ديكورية */
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 40% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+    animation: bgFloat 30s ease-in-out infinite alternate;
+}
+
+@keyframes bgFloat {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(-30px, -20px) rotate(3deg); }
+}
+
+/* شريط التمرير المخصص */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* تحديد النص */
+::selection {
+    background: rgba(99, 102, 241, 0.3);
+    color: var(--text-primary);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   3. الشريط الجانبي (Sidebar)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--bg-sidebar);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-left: 1px solid var(--glass-border);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-normal), width var(--transition-normal);
+    overflow: hidden;
+}
+
+/* رأس الشريط الجانبي */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.logo-icon {
+    font-size: 2.2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-gradient);
+    border-radius: 14px;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-glow);
+    animation: logoPulse 3s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.5); }
+}
+
+.logo-text h1 {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+.logo-text span {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* عناصر التنقل */
+.sidebar-nav {
+    flex: 1;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--border-radius-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 100%;
+    background: var(--primary-gradient);
+    opacity: 0.1;
+    transition: width var(--transition-normal);
+    border-radius: var(--border-radius-sm);
+}
+
+.nav-item:hover {
+    color: var(--text-primary);
+    transform: translateX(-4px);
+}
+
+.nav-item:hover::before {
+    width: 100%;
+}
+
+.nav-item.active {
+    color: var(--primary-light);
+    background: rgba(99, 102, 241, 0.12);
+    font-weight: 700;
+}
+
+.nav-item.active::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    background: var(--primary-gradient);
+    border-radius: 0 4px 4px 0;
+}
+
+.nav-icon {
+    font-size: 1.3rem;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* تذييل الشريط الجانبي */
+.sidebar-footer {
+    padding: 16px 12px;
+    border-top: 1px solid var(--border-color-light);
+}
+
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    border-color: var(--primary);
+}
+
+.theme-icon {
+    font-size: 1.3rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   4. المحتوى الرئيسي (Main Content)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.main-content {
+    margin-right: var(--sidebar-width);
+    min-height: 100vh;
+    padding: 24px 32px;
+    position: relative;
+    z-index: 1;
+    transition: margin-right var(--transition-normal);
+}
+
+/* الرأس العلوي */
+.top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.page-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.page-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.current-date {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    padding: 10px 20px;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* زر الموبايل */
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1100;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: transform var(--transition-fast);
+}
+
+.mobile-menu-btn:active {
+    transform: scale(0.9);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   5. أقسام الصفحات (Page Sections)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.page-section {
+    display: none;
+    animation: fadeSlideUp 0.4s ease-out;
+}
+
+.page-section.active {
+    display: block;
+}
+
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   6. البطاقات (Cards)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: all var(--transition-normal);
+    animation: cardAppear 0.5s ease-out backwards;
+}
+
+.card:hover {
+    border-color: rgba(99, 102, 241, 0.2);
+    box-shadow: var(--shadow-lg);
+}
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* تأخير الكروت في الشبكة */
+.card:nth-child(1) { animation-delay: 0.05s; }
+.card:nth-child(2) { animation-delay: 0.1s; }
+.card:nth-child(3) { animation-delay: 0.15s; }
+.card:nth-child(4) { animation-delay: 0.2s; }
+.card:nth-child(5) { animation-delay: 0.25s; }
+.card:nth-child(6) { animation-delay: 0.3s; }
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color-light);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.card-header h3 {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.card-body {
+    padding: 24px;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mt-1 {
+    margin-top: 24px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   7. بطاقات الإحصائيات (Stats Cards)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all var(--transition-normal);
+    animation: cardAppear 0.5s ease-out backwards;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 3px;
+    border-radius: 0 0 4px 4px;
+}
+
+.stat-card.primary::before { background: var(--primary-gradient); }
+.stat-card.success::before { background: linear-gradient(135deg, #10b981, #34d399); }
+.stat-card.warning::before { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.stat-card.danger::before { background: linear-gradient(135deg, #ef4444, #f87171); }
+.stat-card.info::before { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: rgba(99, 102, 241, 0.25);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    flex-shrink: 0;
+}
+
+.stat-card.primary .stat-icon { background: rgba(99, 102, 241, 0.15); }
+.stat-card.success .stat-icon { background: rgba(16, 185, 129, 0.15); }
+.stat-card.warning .stat-icon { background: rgba(245, 158, 11, 0.15); }
+.stat-card.danger .stat-icon { background: rgba(239, 68, 68, 0.15); }
+.stat-card.info .stat-icon { background: rgba(59, 130, 246, 0.15); }
+
+.stat-info h4 {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   8. الرسوم البيانية (Charts)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.chart-card {
+    min-height: 320px;
+}
+
+.chart-container {
+    width: 100%;
+    min-height: 250px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 20px 0;
+}
+
+/* أعمدة الرسم البياني */
+.chart-bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.chart-bar {
+    width: 100%;
+    max-width: 50px;
+    border-radius: 6px 6px 0 0;
+    transition: all var(--transition-normal);
+    position: relative;
+    min-height: 4px;
+}
+
+.chart-bar:hover {
+    filter: brightness(1.2);
+    transform: scaleY(1.05);
+    transform-origin: bottom;
+}
+
+.chart-bar.present { background: var(--primary-gradient); }
+.chart-bar.absent { background: linear-gradient(135deg, #ef4444, #f87171); }
+.chart-bar.leave { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.chart-bar.late { background: linear-gradient(135deg, #f97316, #fb923c); }
+
+.chart-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.chart-value {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+/* رسم بياني دائري */
+.salary-bars {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 10px 0;
+}
+
+.salary-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.salary-bar-name {
+    width: 60px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: left;
+    flex-shrink: 0;
+}
+
+.salary-bar-track {
+    flex: 1;
+    height: 28px;
+    background: var(--bg-input);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+}
+
+.salary-bar-fill {
+    height: 100%;
+    border-radius: 14px;
+    background: var(--primary-gradient);
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 12px;
+}
+
+.salary-bar-fill span {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: white;
+    white-space: nowrap;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   9. الجداول (Tables)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.table-responsive {
+    overflow-x: auto;
+    border-radius: var(--border-radius-sm);
+}
+
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--font-size-sm);
+}
+
+.table thead th {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: 700;
+    padding: 14px 16px;
+    text-align: right;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 2px solid var(--border-color);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table thead th:first-child {
+    border-radius: 0 var(--border-radius-xs) 0 0;
+}
+
+.table thead th:last-child {
+    border-radius: var(--border-radius-xs) 0 0 0;
+}
+
+.table tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color-light);
+    transition: background var(--transition-fast);
+    vertical-align: middle;
+}
+
+.table tbody tr:nth-child(even) {
+    background: var(--bg-table-stripe);
+}
+
+.table tbody tr:hover {
+    background: var(--bg-card-hover);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table tfoot td {
+    padding: 14px 16px;
+    font-weight: 800;
+    background: var(--bg-tertiary);
+    border-top: 2px solid var(--border-color);
+    color: var(--primary-light);
+}
+
+/* خلية الاسم في الجدول */
+.table .emp-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+/* خلايا الأرقام */
+.table .currency {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    text-align: left;
+}
+
+.table .currency.positive {
+    color: var(--success);
+}
+
+.table .currency.negative {
+    color: var(--danger);
+}
+
+.table .currency.total {
+    color: var(--primary-light);
+    font-size: var(--font-size-base);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   10. جدول الحضور (Attendance Table)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.attendance-table {
+    font-size: var(--font-size-xs);
+}
+
+.attendance-table thead th {
+    padding: 10px 6px;
+    text-align: center;
+    min-width: 38px;
+    font-size: 0.7rem;
+}
+
+.attendance-table thead th:first-child {
+    min-width: 80px;
+    text-align: right;
+    position: sticky;
+    right: 0;
+    z-index: 11;
+}
+
+.attendance-table tbody td:first-child {
+    position: sticky;
+    right: 0;
+    background: var(--bg-card);
+    z-index: 5;
+    font-weight: 700;
+}
+
+.attendance-table tbody tr:nth-child(even) td:first-child {
+    background: var(--bg-secondary);
+}
+
+.attendance-table tbody td {
+    padding: 6px 4px;
+    text-align: center;
+}
+
+/* خلايا الحضور القابلة للنقر */
+.att-cell {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-input);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all var(--transition-fast);
+    padding: 0;
+    font-family: var(--font-family);
+}
+
+.att-cell:hover {
+    transform: scale(1.15);
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+.att-cell.present { background: rgba(16, 185, 129, 0.2); border-color: var(--success); color: var(--success); }
+.att-cell.absent { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); color: var(--danger); }
+.att-cell.leave { background: rgba(245, 158, 11, 0.2); border-color: var(--warning); color: var(--warning); }
+.att-cell.official_holiday { background: rgba(139, 92, 246, 0.2); border-color: #8b5cf6; color: #8b5cf6; }
+.att-cell.errand { background: rgba(59, 130, 246, 0.2); border-color: var(--info); color: var(--info); }
+.att-cell.half_day { background: rgba(236, 72, 153, 0.2); border-color: #ec4899; color: #ec4899; }
+.att-cell.late { background: rgba(249, 115, 22, 0.2); border-color: #f97316; color: #f97316; }
+
+/* مفتاح ألوان الحضور */
+.attendance-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--bg-input);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color-light);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+}
+
+.legend-color.present { background: rgba(16, 185, 129, 0.4); border: 1px solid var(--success); }
+.legend-color.absent { background: rgba(239, 68, 68, 0.4); border: 1px solid var(--danger); }
+.legend-color.leave { background: rgba(245, 158, 11, 0.4); border: 1px solid var(--warning); }
+.legend-color.official_holiday { background: rgba(139, 92, 246, 0.4); border: 1px solid #8b5cf6; }
+.legend-color.errand { background: rgba(59, 130, 246, 0.4); border: 1px solid var(--info); }
+.legend-color.half_day { background: rgba(236, 72, 153, 0.4); border: 1px solid #ec4899; }
+.legend-color.late { background: rgba(249, 115, 22, 0.4); border: 1px solid #f97316; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   11. مودال اختيار نوع الحضور
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.attendance-modal {
+    max-width: 500px;
+}
+
+.attendance-type-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.att-type-btn {
+    padding: 14px 16px;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--border-color);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+}
+
+.att-type-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.att-type-btn.present:hover { background: rgba(16, 185, 129, 0.2); border-color: var(--success); }
+.att-type-btn.absent:hover { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); }
+.att-type-btn.leave:hover { background: rgba(245, 158, 11, 0.2); border-color: var(--warning); }
+.att-type-btn.official_holiday:hover { background: rgba(139, 92, 246, 0.2); border-color: #8b5cf6; }
+.att-type-btn.errand:hover { background: rgba(59, 130, 246, 0.2); border-color: var(--info); }
+.att-type-btn.half_day:hover { background: rgba(236, 72, 153, 0.2); border-color: #ec4899; }
+.att-type-btn.late:hover { background: rgba(249, 115, 22, 0.2); border-color: #f97316; }
+.att-type-btn.clear:hover { background: rgba(148, 163, 184, 0.2); border-color: var(--text-muted); }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   12. الأزرار (Buttons)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--border-radius-sm);
+    border: none;
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* الزر الأساسي */
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-gradient-hover);
+    box-shadow: var(--shadow-glow);
+}
+
+/* زر النجاح */
+.btn-success {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+}
+
+.btn-success:hover {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+/* زر الخطر */
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    color: white;
+}
+
+.btn-danger:hover {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+/* زر التحذير */
+.btn-warning {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    color: #1e293b;
+}
+
+.btn-warning:hover {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+/* زر شفاف */
+.btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-ghost:hover {
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
+/* زر كامل العرض */
+.btn-block {
+    width: 100%;
+}
+
+/* زر صغير */
+.btn-sm {
+    padding: 6px 14px;
+    font-size: var(--font-size-xs);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   13. حقول الإدخال (Form Inputs)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+    outline: none;
+}
+
+.input-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    background: var(--bg-secondary);
+}
+
+.input-field::placeholder {
+    color: var(--text-muted);
+}
+
+.input-field:hover {
+    border-color: var(--primary-light);
+}
+
+.input-sm {
+    padding: 8px 12px;
+    font-size: var(--font-size-xs);
+    width: auto;
+    min-width: 160px;
+}
+
+textarea.input-field {
+    resize: vertical;
+    min-height: 80px;
+}
+
+select.input-field {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 12px center;
+    padding-left: 32px;
+}
+
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 12px;
+    padding-top: 12px;
+}
+
+/* نص المساعدة */
+.help-text {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 20px 0;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   14. المودال (Modal)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-modal-overlay);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.modal-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.modal-header h3 {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+}
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: var(--bg-input);
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-start;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color-light);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   15. التنبيهات (Toast Notifications)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.toast-container {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-sm);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-xl);
+    backdrop-filter: blur(20px);
+    animation: toastSlideIn 0.4s ease-out;
+    pointer-events: auto;
+    min-width: 300px;
+    max-width: 450px;
+}
+
+.toast.removing {
+    animation: toastSlideOut 0.3s ease-in forwards;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-100px);
+    }
+}
+
+.toast-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.toast.success { border-right: 4px solid var(--success); }
+.toast.error { border-right: 4px solid var(--danger); }
+.toast.warning { border-right: 4px solid var(--warning); }
+.toast.info { border-right: 4px solid var(--info); }
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 4px;
+    transition: color var(--transition-fast);
+}
+
+.toast-close:hover {
+    color: var(--text-primary);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   16. بطاقات الموظفين (Employee Cards)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.employees-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.employee-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    transition: all var(--transition-normal);
+    animation: cardAppear 0.5s ease-out backwards;
+    position: relative;
+    overflow: hidden;
+}
+
+.employee-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary-gradient);
+}
+
+.employee-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.employee-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.employee-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+}
+
+.employee-name {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.employee-salary {
+    font-size: var(--font-size-sm);
+    color: var(--primary-light);
+    font-weight: 600;
+}
+
+.employee-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.employee-detail-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.employee-detail-item span:last-child {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.employee-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color-light);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   17. قسيمة الراتب (Payslip)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.payslip-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.payslip-placeholder {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.placeholder-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* قسيمة الراتب المطبوعة */
+.payslip {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    padding: 40px;
+    position: relative;
+}
+
+.payslip-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--primary);
+}
+
+.payslip-company {
+    font-size: var(--font-size-2xl);
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.payslip-title {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.payslip-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--bg-input);
+    border-radius: var(--border-radius-sm);
+}
+
+.payslip-info-item {
+    display: flex;
+    gap: 8px;
+}
+
+.payslip-info-label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.payslip-info-value {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.payslip-table {
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.payslip-table th,
+.payslip-table td {
+    padding: 12px 16px;
+    text-align: right;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.payslip-table th {
+    background: var(--bg-tertiary);
+    font-weight: 700;
+    font-size: var(--font-size-sm);
+}
+
+.payslip-total-row {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+}
+
+.payslip-total-row td {
+    font-size: var(--font-size-lg) !important;
+    font-weight: 800 !important;
+    color: white !important;
+    border: none !important;
+    padding: 16px !important;
+}
+
+.payslip-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.payslip-signature {
+    text-align: center;
+}
+
+.payslip-signature .line {
+    border-bottom: 1px solid var(--text-muted);
+    margin-bottom: 8px;
+    height: 40px;
+}
+
+.payslip-signature .label {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   18. الأرشيف (Archive)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.archive-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.archive-item:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--primary);
+    transform: translateX(-4px);
+}
+
+.archive-item-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.archive-item-icon {
+    font-size: 2rem;
+}
+
+.archive-item-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.archive-item-date {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.archive-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.archive-empty {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-muted);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   19. الإعدادات (Settings)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 24px;
+}
+
+.backup-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   20. النشاطات الأخيرة (Recent Activity)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.recent-activity {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color-light);
+    transition: all var(--transition-fast);
+}
+
+.activity-item:hover {
+    border-color: var(--primary);
+    transform: translateX(-4px);
+}
+
+.activity-icon {
+    font-size: 1.5rem;
+}
+
+.activity-text {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.activity-text strong {
+    color: var(--text-primary);
+}
+
+.activity-time {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   21. حقول المرتبات القابلة للتعديل
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.salary-input {
+    width: 80px;
+    padding: 6px 8px;
+    background: var(--bg-input);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--border-radius-xs);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-xs);
+    text-align: center;
+    transition: all var(--transition-fast);
+    outline: none;
+}
+
+.salary-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.salary-input::-webkit-inner-spin-button,
+.salary-input::-webkit-outer-spin-button {
+    opacity: 1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   22. الطباعة (Print Styles)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+@media print {
+    body {
+        background: white !important;
+        color: #1e293b !important;
+    }
+
+    body::before {
+        display: none;
+    }
+
+    .sidebar,
+    .mobile-menu-btn,
+    .top-header,
+    .toast-container,
+    .modal-overlay,
+    .btn,
+    .card-header .header-controls {
+        display: none !important;
+    }
+
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .page-section {
+        display: none !important;
+    }
+
+    .page-section#page-payslip {
+        display: block !important;
+    }
+
+    .card {
+        background: none !important;
+        border: none !important;
+        backdrop-filter: none !important;
+        box-shadow: none !important;
+    }
+
+    .payslip {
+        background: white !important;
+        border: 2px solid #1e293b !important;
+        border-radius: 0 !important;
+        color: #1e293b !important;
+        padding: 30px !important;
+    }
+
+    .payslip * {
+        color: #1e293b !important;
+    }
+
+    .payslip-company {
+        color: #4f46e5 !important;
+    }
+
+    .payslip-total-row {
+        background: #4f46e5 !important;
+    }
+
+    .payslip-total-row td {
+        color: white !important;
+    }
+
+    .payslip-table th {
+        background: #f1f5f9 !important;
+    }
+
+    .payslip-table td,
+    .payslip-table th {
+        border-color: #cbd5e1 !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   23. التجاوب (Responsive Design)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* شاشات متوسطة */
+@media (max-width: 1024px) {
+    .main-content {
+        padding: 24px 20px;
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* شاشات الموبايل */
+@media (max-width: 768px) {
+    /* الشريط الجانبي يتحول لشريط سفلي */
+    .sidebar {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        border-left: none;
+        border-top: 1px solid var(--glass-border);
+        z-index: 1000;
+    }
+
+    .sidebar-header {
+        display: none;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        padding: 8px;
+        gap: 2px;
+        overflow-x: auto;
+        flex: 1;
+    }
+
+    .nav-item {
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 10px;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .nav-item:hover {
+        transform: none;
+    }
+
+    .nav-text {
+        font-size: 0.6rem;
+        white-space: nowrap;
+    }
+
+    .nav-icon {
+        font-size: 1.2rem;
+    }
+
+    .nav-item.active::after {
+        top: 0;
+        right: 50%;
+        transform: translateX(50%);
+        width: 60%;
+        height: 3px;
+        border-radius: 0 0 4px 4px;
+    }
+
+    .sidebar-footer {
+        display: none;
+    }
+
+    /* المحتوى الرئيسي */
+    .main-content {
+        margin-right: 0;
+        padding: 16px;
+        padding-bottom: 90px;
+    }
+
+    .mobile-menu-btn {
+        display: none; /* لا نحتاجه لأن الشريط أسفل */
+    }
+
+    .top-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .page-title {
+        font-size: var(--font-size-xl);
+    }
+
+    /* الجداول */
+    .table {
+        font-size: var(--font-size-xs);
+    }
+
+    .table thead th,
+    .table tbody td {
+        padding: 8px 10px;
+    }
+
+    /* البطاقات */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 16px;
+        gap: 10px;
+    }
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.8rem;
+    }
+
+    .stat-value {
+        font-size: var(--font-size-lg);
+    }
+
+    .employees-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card-header {
+        padding: 16px;
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    .header-controls {
+        width: 100%;
+    }
+
+    .header-controls .input-sm {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .attendance-type-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .attendance-legend {
+        gap: 10px;
+    }
+
+    .payslip {
+        padding: 20px;
+    }
+
+    .payslip-info {
+        grid-template-columns: 1fr;
+    }
+
+    .payslip-footer {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .salary-table {
+        font-size: 0.65rem;
+    }
+
+    .salary-table thead th,
+    .salary-table tbody td {
+        padding: 8px 6px;
+    }
+
+    .salary-input {
+        width: 60px;
+        font-size: 0.65rem;
+        padding: 4px 6px;
+    }
+}
+
+/* شاشات صغيرة جداً */
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal {
+        max-height: 90vh;
+        margin: 10px;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   24. أنيميشن التحميل (Loading Animation)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.loading-spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* شريط التحميل */
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-input) 25%, var(--bg-tertiary) 50%, var(--bg-input) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   25. أدوات مساعدة (Utilities)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.text-primary { color: var(--primary) !important; }
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-muted { color: var(--text-muted) !important; }
+
+.fw-bold { font-weight: 700; }
+.fw-semibold { font-weight: 600; }
+
+.d-none { display: none !important; }
+.d-flex { display: flex; }
+.gap-1 { gap: 8px; }
+.gap-2 { gap: 16px; }
+
+.w-100 { width: 100%; }
+
+/* Badge */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+
+.badge-primary {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary-light);
+}
+
+.badge-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+}
+
+.badge-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+}
+</style>
+</head>
+<body>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         الشريط الجانبي - Sidebar Navigation
+         ════════════════════════════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+        <!-- شعار الشركة -->
+        <div class="sidebar-header">
+            <div class="logo-icon">🔧</div>
+            <div class="logo-text">
+                <h1>المحبة</h1>
+                <span>لقطع الغيار</span>
+            </div>
+        </div>
+
+        <!-- قائمة التنقل -->
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">لوحة التحكم</span>
+            </a>
+            <a href="#attendance" class="nav-item" data-page="attendance">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">الحضور والغياب</span>
+            </a>
+            <a href="#salaries" class="nav-item" data-page="salaries">
+                <span class="nav-icon">💰</span>
+                <span class="nav-text">المرتبات</span>
+            </a>
+            <a href="#employees" class="nav-item" data-page="employees">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">الموظفين</span>
+            </a>
+            <a href="#payslip" class="nav-item" data-page="payslip">
+                <span class="nav-icon">🧾</span>
+                <span class="nav-text">قسيمة الراتب</span>
+            </a>
+            <a href="#archive" class="nav-item" data-page="archive">
+                <span class="nav-icon">🗄️</span>
+                <span class="nav-text">الأرشيف</span>
+            </a>
+            <a href="#settings" class="nav-item" data-page="settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">الإعدادات</span>
+            </a>
+        </nav>
+
+        <!-- زر تبديل الوضع -->
+        <div class="sidebar-footer">
+            <button class="theme-toggle" id="themeToggle" title="تبديل المظهر">
+                <span class="theme-icon" id="themeIcon">🌙</span>
+                <span class="nav-text">الوضع الداكن</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         زر فتح القائمة للموبايل
+         ════════════════════════════════════════════════════════════════════ -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="فتح القائمة">☰</button>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         المحتوى الرئيسي - Main Content Area
+         ════════════════════════════════════════════════════════════════════ -->
+    <main class="main-content" id="mainContent">
+
+        <!-- الرأس العلوي -->
+        <header class="top-header">
+            <div class="header-info">
+                <h2 class="page-title" id="pageTitle">لوحة التحكم</h2>
+                <p class="page-subtitle">شركة المحبة لقطع الغيار — نظام إدارة الحضور والمرتبات</p>
+            </div>
+            <div class="header-actions">
+                <div class="current-date" id="currentDate"></div>
+            </div>
+        </header>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة لوحة التحكم - Dashboard
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section active" id="page-dashboard">
+            <!-- بطاقات الإحصائيات -->
+            <div class="stats-grid" id="dashboardStats">
+                <!-- يتم تعبئتها ديناميكياً -->
+            </div>
+
+            <!-- الرسوم البيانية -->
+            <div class="charts-grid">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>📈 ملخص الحضور الشهري</h3>
+                        <select class="input-field input-sm" id="dashboardMonthSelect"></select>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" id="attendanceChart"></div>
+                    </div>
+                </div>
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>💵 ملخص المرتبات</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" id="salaryChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- آخر النشاطات -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>🕐 آخر تحديثات الحضور</h3>
+                </div>
+                <div class="card-body">
+                    <div class="recent-activity" id="recentActivity">
+                        <!-- يتم تعبئتها ديناميكياً -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة الحضور والغياب - Attendance
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-attendance">
+            <div class="card">
+                <div class="card-header">
+                    <h3>📋 سجل الحضور والغياب</h3>
+                    <div class="header-controls">
+                        <select class="input-field input-sm" id="attendanceMonthSelect"></select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- مفتاح الألوان -->
+                    <div class="attendance-legend" id="attendanceLegend">
+                        <span class="legend-item" data-type="present"><span class="legend-color present"></span>✅ حضور</span>
+                        <span class="legend-item" data-type="absent"><span class="legend-color absent"></span>❌ غياب</span>
+                        <span class="legend-item" data-type="leave"><span class="legend-color leave"></span>🏖️ إجازة</span>
+                        <span class="legend-item" data-type="official_holiday"><span class="legend-color official_holiday"></span>🎉 رسمية</span>
+                        <span class="legend-item" data-type="errand"><span class="legend-color errand"></span>📋 مأمورية</span>
+                        <span class="legend-item" data-type="half_day"><span class="legend-color half_day"></span>🕐 نص يوم</span>
+                        <span class="legend-item" data-type="late"><span class="legend-color late"></span>⏰ تأخير</span>
+                    </div>
+
+                    <!-- جدول الحضور -->
+                    <div class="table-responsive">
+                        <table class="table attendance-table" id="attendanceTable">
+                            <thead>
+                                <tr id="attendanceHeader">
+                                    <!-- يتم تعبئتها ديناميكياً -->
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceBody">
+                                <!-- يتم تعبئتها ديناميكياً -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ملخص الحضور -->
+            <div class="card mt-1">
+                <div class="card-header">
+                    <h3>📊 ملخص الحضور</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="attendanceSummaryTable">
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>أيام الحضور</th>
+                                    <th>أيام الغياب</th>
+                                    <th>الإجازات</th>
+                                    <th>نص يوم</th>
+                                    <th>ساعات التأخير</th>
+                                    <th>مأموريات</th>
+                                    <th>إجازات رسمية</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceSummaryBody">
+                                <!-- يتم تعبئتها ديناميكياً -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة المرتبات - Salaries
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-salaries">
+            <div class="card">
+                <div class="card-header">
+                    <h3>💰 جدول المرتبات</h3>
+                    <div class="header-controls">
+                        <select class="input-field input-sm" id="salaryMonthSelect"></select>
+                        <button class="btn btn-primary" id="saveSalaryDetailsBtn">💾 حفظ التعديلات</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table salary-table" id="salaryTable">
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>الراتب الأساسي</th>
+                                    <th>اليومي</th>
+                                    <th>أيام الغياب</th>
+                                    <th>خصم الغياب</th>
+                                    <th>ساعات التأخير</th>
+                                    <th>خصم التأخير</th>
+                                    <th>أيام الإجازة</th>
+                                    <th>خصم الإجازات</th>
+                                    <th>أيام الأوفرتايم</th>
+                                    <th>بدل أوفرتايم</th>
+                                    <th>سلف</th>
+                                    <th>مكافأة</th>
+                                    <th>الصافي</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salaryBody">
+                                <!-- يتم تعبئتها ديناميكياً -->
+                            </tbody>
+                            <tfoot id="salaryFooter">
+                                <!-- يتم تعبئتها ديناميكياً -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة الموظفين - Employees
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-employees">
+            <div class="card">
+                <div class="card-header">
+                    <h3>👥 إدارة الموظفين</h3>
+                    <button class="btn btn-primary" id="addEmployeeBtn">➕ إضافة موظف</button>
+                </div>
+                <div class="card-body">
+                    <div class="employees-grid" id="employeesGrid">
+                        <!-- يتم تعبئتها ديناميكياً -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج إضافة/تعديل موظف -->
+            <div class="card mt-1" id="employeeFormCard" style="display: none;">
+                <div class="card-header">
+                    <h3 id="employeeFormTitle">➕ إضافة موظف جديد</h3>
+                    <button class="btn btn-ghost" id="cancelEmployeeBtn">✕ إلغاء</button>
+                </div>
+                <div class="card-body">
+                    <form id="employeeForm" class="form-grid">
+                        <input type="hidden" id="empId">
+                        <div class="form-group">
+                            <label for="empName">اسم الموظف</label>
+                            <input type="text" class="input-field" id="empName" placeholder="أدخل اسم الموظف" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="empSalary">الراتب الأساسي (ج.م)</label>
+                            <input type="number" class="input-field" id="empSalary" placeholder="0" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="empLeave">رصيد الإجازات (يوم)</label>
+                            <input type="number" class="input-field" id="empLeave" placeholder="21" value="21" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="empPhone">رقم الهاتف</label>
+                            <input type="tel" class="input-field" id="empPhone" placeholder="01xxxxxxxxx">
+                        </div>
+                        <div class="form-group">
+                            <label for="empJoinDate">تاريخ التعيين</label>
+                            <input type="date" class="input-field" id="empJoinDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="empNotes">ملاحظات</label>
+                            <textarea class="input-field" id="empNotes" placeholder="ملاحظات إضافية..." rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">💾 حفظ</button>
+                            <button type="button" class="btn btn-ghost" id="cancelEmployeeBtn2">إلغاء</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة قسيمة الراتب - Payslip
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-payslip">
+            <div class="card">
+                <div class="card-header">
+                    <h3>🧾 قسيمة الراتب</h3>
+                    <div class="header-controls">
+                        <select class="input-field input-sm" id="payslipEmployee"></select>
+                        <select class="input-field input-sm" id="payslipMonth"></select>
+                        <button class="btn btn-primary" id="generatePayslip">📄 عرض القسيمة</button>
+                        <button class="btn btn-success" id="printPayslip" style="display:none;">🖨️ طباعة</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="payslipContent" class="payslip-container">
+                        <div class="payslip-placeholder">
+                            <span class="placeholder-icon">🧾</span>
+                            <p>اختر الموظف والشهر ثم اضغط "عرض القسيمة"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة الأرشيف - Archive
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-archive">
+            <div class="card">
+                <div class="card-header">
+                    <h3>🗄️ الأرشيف الشهري</h3>
+                    <button class="btn btn-primary" id="archiveCurrentMonth">📥 أرشفة الشهر الحالي</button>
+                </div>
+                <div class="card-body">
+                    <div class="archive-list" id="archiveList">
+                        <!-- يتم تعبئتها ديناميكياً -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة الإعدادات - Settings
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-settings">
+            <div class="settings-grid">
+                <!-- إعدادات عامة -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>⚙️ الإعدادات العامة</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="settingsForm">
+                            <div class="form-group">
+                                <label for="settingTheme">المظهر</label>
+                                <select class="input-field" id="settingTheme">
+                                    <option value="dark">🌙 داكن</option>
+                                    <option value="light">☀️ فاتح</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="settingOvertimeRate">بدل الأوفرتايم (ج.م / يوم)</label>
+                                <input type="number" class="input-field" id="settingOvertimeRate" value="100" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingWorkHours">ساعات العمل اليومية</label>
+                                <input type="number" class="input-field" id="settingWorkHours" value="10" min="1" max="24">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingWeeklyOff">يوم الإجازة الأسبوعية</label>
+                                <select class="input-field" id="settingWeeklyOff">
+                                    <option value="friday">الجمعة</option>
+                                    <option value="saturday">السبت</option>
+                                    <option value="sunday">الأحد</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">💾 حفظ الإعدادات</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- النسخ الاحتياطي -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>💾 النسخ الاحتياطي</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="backup-actions">
+                            <button class="btn btn-success btn-block" id="exportDataBtn">
+                                📤 تصدير البيانات
+                            </button>
+                            <p class="help-text">تصدير جميع البيانات كملف JSON للحفظ الاحتياطي</p>
+
+                            <div class="divider"></div>
+
+                            <label class="btn btn-warning btn-block" for="importDataInput">
+                                📥 استيراد البيانات
+                            </label>
+                            <input type="file" id="importDataInput" accept=".json" style="display:none;">
+                            <p class="help-text">استيراد بيانات من نسخة احتياطية سابقة</p>
+
+                            <div class="divider"></div>
+
+                            <button class="btn btn-danger btn-block" id="resetDataBtn">
+                                🗑️ مسح جميع البيانات
+                            </button>
+                            <p class="help-text">تحذير: سيتم حذف جميع البيانات نهائياً!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         مكون المودال - Modal Component
+         ════════════════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">تأكيد</h3>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- محتوى المودال -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="modalConfirm">تأكيد</button>
+                <button class="btn btn-ghost" id="modalCancel">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         مكون التنبيهات - Toast Notifications
+         ════════════════════════════════════════════════════════════════════ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         مودال اختيار نوع الحضور
+         ════════════════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="attendanceModalOverlay">
+        <div class="modal attendance-modal" id="attendanceModal">
+            <div class="modal-header">
+                <h3 id="attendanceModalTitle">تسجيل الحضور</h3>
+                <button class="modal-close" id="attendanceModalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="attendance-type-grid" id="attendanceTypeGrid">
+                    <button class="att-type-btn present" data-type="present">✅ حضور</button>
+                    <button class="att-type-btn absent" data-type="absent">❌ غياب</button>
+                    <button class="att-type-btn leave" data-type="leave">🏖️ إجازة</button>
+                    <button class="att-type-btn official_holiday" data-type="official_holiday">🎉 إجازة رسمية</button>
+                    <button class="att-type-btn errand" data-type="errand">📋 مأمورية</button>
+                    <button class="att-type-btn half_day" data-type="half_day">🕐 نص يوم</button>
+                    <button class="att-type-btn late" data-type="late_1">⏰ تأخير 1 ساعة</button>
+                    <button class="att-type-btn late" data-type="late_2">⏰ تأخير 2 ساعة</button>
+                    <button class="att-type-btn late" data-type="late_3">⏰ تأخير 3 ساعات</button>
+                    <button class="att-type-btn late" data-type="late_4">⏰ تأخير 4 ساعات</button>
+                    <button class="att-type-btn late" data-type="late_5">⏰ تأخير 5 ساعات</button>
+                    <button class="att-type-btn clear" data-type="">🚫 مسح</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         ملفات JavaScript
+         ════════════════════════════════════════════════════════════════════ -->
+    <script>/* ╔══════════════════════════════════════════════════════════════════════════════╗
+   ║  شركة المحبة لقطع الغيار - قاعدة البيانات المحلية                         ║
+   ║  Database Manager - LocalStorage Persistence Layer                          ║
+   ╚══════════════════════════════════════════════════════════════════════════════╝ */
+
+/**
+ * مدير قاعدة البيانات المحلية
+ * يستخدم LocalStorage لحفظ البيانات بشكل دائم في المتصفح
+ */
+class DB {
+    constructor() {
+        /** @type {string} بادئة مفاتيح التخزين لمنع التعارض */
+        this.PREFIX = 'almahaba_';
+        
+        /** @type {string} إصدار قاعدة البيانات */
+        this.VERSION = '1.0.0';
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       التهيئة الأولية
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * تهيئة قاعدة البيانات بالبيانات الافتراضية إذا كانت فارغة
+     */
+    init() {
+        // التحقق من وجود بيانات مسبقة
+        if (!this.get('initialized')) {
+            console.log('🔧 تهيئة قاعدة البيانات لأول مرة...');
+            this._initDefaultEmployees();
+            this._initDefaultSettings();
+            this._initDefaultAttendance();
+            this._initDefaultSalaryDetails();
+            this.set('initialized', true);
+            this.set('version', this.VERSION);
+            console.log('✅ تم تهيئة قاعدة البيانات بنجاح');
+        } else {
+            console.log('📂 قاعدة البيانات موجودة بالفعل');
+        }
+    }
+
+    /**
+     * تهيئة بيانات الموظفين الافتراضية
+     * @private
+     */
+    _initDefaultEmployees() {
+        const employees = [
+            {
+                id: 1,
+                name: 'حاتم',
+                baseSalary: 13000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            },
+            {
+                id: 2,
+                name: 'خوليو',
+                baseSalary: 8000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            },
+            {
+                id: 3,
+                name: 'فهد',
+                baseSalary: 8000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            },
+            {
+                id: 4,
+                name: 'حمص',
+                baseSalary: 4000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            },
+            {
+                id: 5,
+                name: 'محمد',
+                baseSalary: 6000,
+                leaveBalance: 21,
+                phone: '',
+                joinDate: '2024-01-01',
+                notes: '',
+                active: true
+            }
+        ];
+
+        this.set('employees', employees);
+        this.set('nextEmployeeId', 6);
+    }
+
+    /**
+     * تهيئة الإعدادات الافتراضية
+     * @private
+     */
+    _initDefaultSettings() {
+        const settings = {
+            theme: 'dark',
+            overtimeRate: 100,       // بدل الأوفرتايم بالجنيه لكل يوم
+            workHoursPerDay: 10,     // ساعات العمل اليومية
+            weeklyOff: 'sunday',     // يوم الإجازة الأسبوعية
+            companyName: 'شركة المحبة لقطع الغيار',
+            systemTitle: 'نظام إدارة الحضور والمرتبات'
+        };
+
+        this.set('settings', settings);
+    }
+
+    /**
+     * تهيئة بيانات الحضور الافتراضية لشهر يونيو 2026
+     * @private
+     */
+    _initDefaultAttendance() {
+        const month = '2026-06'; // يونيو 2026
+
+        /*
+         * هيكل بيانات الحضور:
+         * { "employeeId": { "dayNumber": "attendanceType" } }
+         *
+         * أنواع الحضور:
+         * present       = حضور كامل
+         * absent        = غياب
+         * leave         = إجازة من الرصيد
+         * official_holiday = إجازة رسمية (لا تُخصم)
+         * errand        = مأمورية (تُحسب حضور)
+         * half_day      = نصف يوم (0.5 حضور)
+         * late_1..late_5 = تأخير 1-5 ساعات
+         */
+
+        const attendance = {};
+
+        // ── حاتم (id: 1) ──
+        // أيام 1-6 حضور، 7 إجازة، 8-13 حضور، 14 إجازة، 15-22 حضور، 23 إجازة
+        attendance[1] = {};
+        for (let d = 1; d <= 6; d++) attendance[1][d] = 'present';
+        attendance[1][7] = 'leave';
+        for (let d = 8; d <= 13; d++) attendance[1][d] = 'present';
+        attendance[1][14] = 'leave';
+        for (let d = 15; d <= 22; d++) attendance[1][d] = 'present';
+        attendance[1][23] = 'leave';
+
+        // ── خوليو (id: 2) ──
+        // 1 تأخير 3 ساعات، 2-4 نص يوم، 5 حضور، 6 نص يوم، 7 إجازة
+        // 8 نص يوم، 9-13 حضور، 14 إجازة، 15-20 حضور
+        // 21 تأخير 2، 22 تأخير 1، 23 إجازة
+        attendance[2] = {};
+        attendance[2][1] = 'late_3';
+        attendance[2][2] = 'half_day';
+        attendance[2][3] = 'half_day';
+        attendance[2][4] = 'half_day';
+        attendance[2][5] = 'present';
+        attendance[2][6] = 'half_day';
+        attendance[2][7] = 'leave';
+        attendance[2][8] = 'half_day';
+        for (let d = 9; d <= 13; d++) attendance[2][d] = 'present';
+        attendance[2][14] = 'leave';
+        for (let d = 15; d <= 20; d++) attendance[2][d] = 'present';
+        attendance[2][21] = 'late_2';
+        attendance[2][22] = 'late_1';
+        attendance[2][23] = 'leave';
+
+        // ── فهد (id: 3) ──
+        // 1 غياب، 2-3 تأخير 2، 4 نص يوم، 5 حضور، 6 نص يوم، 7 إجازة
+        // 8-9 نص يوم، 10 تأخير 1، 11 نص يوم، 12-13 غياب، 14 حضور
+        // 15 نص يوم، 16-20 حضور، 21 تأخير 2، 22 تأخير 1، 23 إجازة
+        attendance[3] = {};
+        attendance[3][1] = 'absent';
+        attendance[3][2] = 'late_2';
+        attendance[3][3] = 'late_2';
+        attendance[3][4] = 'half_day';
+        attendance[3][5] = 'present';
+        attendance[3][6] = 'half_day';
+        attendance[3][7] = 'leave';
+        attendance[3][8] = 'half_day';
+        attendance[3][9] = 'half_day';
+        attendance[3][10] = 'late_1';
+        attendance[3][11] = 'half_day';
+        attendance[3][12] = 'absent';
+        attendance[3][13] = 'absent';
+        attendance[3][14] = 'present';
+        attendance[3][15] = 'half_day';
+        for (let d = 16; d <= 20; d++) attendance[3][d] = 'present';
+        attendance[3][21] = 'late_2';
+        attendance[3][22] = 'late_1';
+        attendance[3][23] = 'leave';
+
+        // ── حمص (id: 4) ──
+        // يوم 1 غياب فقط، باقي الأيام فارغة
+        attendance[4] = {};
+        attendance[4][1] = 'absent';
+
+        // ── محمد (id: 5) ──
+        // أيام 1-15 فارغة، 16 نص يوم، 17 حضور، 18 نص يوم
+        // 19 تأخير 2، 20 تأخير 1، 21 إجازة
+        attendance[5] = {};
+        attendance[5][16] = 'half_day';
+        attendance[5][17] = 'present';
+        attendance[5][18] = 'half_day';
+        attendance[5][19] = 'late_2';
+        attendance[5][20] = 'late_1';
+        attendance[5][21] = 'leave';
+
+        this.saveAttendance(month, attendance);
+    }
+
+    /**
+     * تهيئة تفاصيل المرتبات الافتراضية لشهر يونيو 2026
+     * @private
+     */
+    _initDefaultSalaryDetails() {
+        const month = '2026-06';
+
+        /*
+         * هيكل تفاصيل المرتبات:
+         * { "employeeId": { advances, bonus, overtimeDays, notes } }
+         * الحقول الإضافية مثل السلف والمكافآت يدخلها المستخدم
+         */
+        const salaryDetails = {
+            1: { advances: 0, bonus: 0, overtimeDays: 0, notes: '' },
+            2: { advances: 0, bonus: 0, overtimeDays: 0, notes: '' },
+            3: { advances: 300, bonus: 0, overtimeDays: 0, notes: 'سلفة 300 جنيه' },
+            4: { advances: 0, bonus: 0, overtimeDays: 0, notes: '' },
+            5: { advances: 0, bonus: 0, overtimeDays: 0, notes: '' }
+        };
+
+        this.saveSalaryDetails(month, salaryDetails);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       عمليات التخزين الأساسية (Core Storage Operations)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * قراءة قيمة من التخزين المحلي
+     * @param {string} key - مفتاح البيانات
+     * @returns {*} القيمة المخزنة أو null
+     */
+    get(key) {
+        try {
+            const data = localStorage.getItem(this.PREFIX + key);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            console.error(`❌ خطأ في قراءة المفتاح: ${key}`, error);
+            return null;
+        }
+    }
+
+    /**
+     * حفظ قيمة في التخزين المحلي
+     * @param {string} key - مفتاح البيانات
+     * @param {*} value - القيمة المراد حفظها
+     */
+    set(key, value) {
+        try {
+            localStorage.setItem(this.PREFIX + key, JSON.stringify(value));
+        } catch (error) {
+            console.error(`❌ خطأ في حفظ المفتاح: ${key}`, error);
+            // التحقق من امتلاء التخزين
+            if (error.name === 'QuotaExceededError') {
+                console.error('⚠️ مساحة التخزين ممتلئة!');
+            }
+        }
+    }
+
+    /**
+     * حذف قيمة من التخزين المحلي
+     * @param {string} key - مفتاح البيانات
+     */
+    remove(key) {
+        localStorage.removeItem(this.PREFIX + key);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       إدارة الموظفين (Employee Management)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على قائمة جميع الموظفين
+     * @param {boolean} [activeOnly=true] - إرجاع الموظفين النشطين فقط
+     * @returns {Array} قائمة الموظفين
+     */
+    getEmployees(activeOnly = true) {
+        const employees = this.get('employees') || [];
+        if (activeOnly) {
+            return employees.filter(emp => emp.active !== false);
+        }
+        return employees;
+    }
+
+    /**
+     * الحصول على موظف بواسطة المعرف
+     * @param {number} id - معرف الموظف
+     * @returns {Object|null} بيانات الموظف
+     */
+    getEmployeeById(id) {
+        const employees = this.get('employees') || [];
+        return employees.find(emp => emp.id === id) || null;
+    }
+
+    /**
+     * حفظ/تحديث بيانات موظف
+     * @param {Object} employee - بيانات الموظف
+     * @returns {Object} الموظف بعد الحفظ
+     */
+    saveEmployee(employee) {
+        const employees = this.get('employees') || [];
+
+        if (employee.id) {
+            // تحديث موظف موجود
+            const index = employees.findIndex(emp => emp.id === employee.id);
+            if (index !== -1) {
+                employees[index] = { ...employees[index], ...employee };
+            }
+        } else {
+            // إضافة موظف جديد
+            const nextId = this.get('nextEmployeeId') || 1;
+            employee.id = nextId;
+            employee.active = true;
+            employees.push(employee);
+            this.set('nextEmployeeId', nextId + 1);
+        }
+
+        this.set('employees', employees);
+        return employee;
+    }
+
+    /**
+     * حذف موظف (حذف ناعم - تعطيل)
+     * @param {number} id - معرف الموظف
+     */
+    deleteEmployee(id) {
+        const employees = this.get('employees') || [];
+        const index = employees.findIndex(emp => emp.id === id);
+        if (index !== -1) {
+            employees[index].active = false;
+            this.set('employees', employees);
+        }
+    }
+
+    /**
+     * حذف موظف نهائياً
+     * @param {number} id - معرف الموظف
+     */
+    hardDeleteEmployee(id) {
+        const employees = this.get('employees') || [];
+        const filtered = employees.filter(emp => emp.id !== id);
+        this.set('employees', filtered);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       إدارة الحضور (Attendance Management)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على بيانات الحضور لشهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} بيانات الحضور
+     */
+    getAttendance(month) {
+        return this.get(`attendance_${month}`) || {};
+    }
+
+    /**
+     * حفظ بيانات الحضور لشهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @param {Object} data - بيانات الحضور
+     */
+    saveAttendance(month, data) {
+        this.set(`attendance_${month}`, data);
+    }
+
+    /**
+     * تحديث حضور موظف ليوم معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @param {number} employeeId - معرف الموظف
+     * @param {number} day - رقم اليوم
+     * @param {string} type - نوع الحضور
+     */
+    updateAttendanceCell(month, employeeId, day, type) {
+        const attendance = this.getAttendance(month);
+        if (!attendance[employeeId]) {
+            attendance[employeeId] = {};
+        }
+
+        if (type === '' || type === null || type === undefined) {
+            // مسح الحضور
+            delete attendance[employeeId][day];
+        } else {
+            attendance[employeeId][day] = type;
+        }
+
+        this.saveAttendance(month, attendance);
+    }
+
+    /**
+     * حساب ملخص حضور موظف لشهر معين
+     * @param {number} employeeId - معرف الموظف
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} ملخص الحضور
+     */
+    getAttendanceSummary(employeeId, month) {
+        const attendance = this.getAttendance(month);
+        const empAttendance = attendance[employeeId] || {};
+
+        const summary = {
+            present: 0,        // أيام الحضور الكامل
+            absent: 0,         // أيام الغياب
+            leave: 0,          // أيام الإجازة
+            officialHoliday: 0, // إجازات رسمية
+            errand: 0,         // مأموريات
+            halfDay: 0,        // أيام نصف يوم
+            lateHours: 0,      // إجمالي ساعات التأخير
+            lateDays: 0,       // عدد أيام التأخير
+            totalWorked: 0     // إجمالي أيام العمل الفعلية
+        };
+
+        for (const [day, type] of Object.entries(empAttendance)) {
+            switch (type) {
+                case 'present':
+                    summary.present++;
+                    break;
+                case 'absent':
+                    summary.absent++;
+                    break;
+                case 'leave':
+                    summary.leave++;
+                    break;
+                case 'official_holiday':
+                    summary.officialHoliday++;
+                    break;
+                case 'errand':
+                    summary.errand++;
+                    break;
+                case 'half_day':
+                    summary.halfDay++;
+                    break;
+                case 'late_1':
+                case 'late_2':
+                case 'late_3':
+                case 'late_4':
+                case 'late_5':
+                    // استخراج عدد ساعات التأخير من نوع الحضور
+                    const hours = parseInt(type.split('_')[1]);
+                    summary.lateHours += hours;
+                    summary.lateDays++;
+                    break;
+            }
+        }
+
+        // حساب إجمالي أيام العمل الفعلية
+        // الحضور الكامل + المأمورية + أيام التأخير (تحسب حضور) + نصف يوم (0.5)
+        summary.totalWorked = summary.present + summary.errand + summary.lateDays + (summary.halfDay * 0.5);
+
+        return summary;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       إدارة المرتبات (Salary Management)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على تفاصيل المرتبات الإضافية لشهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} تفاصيل المرتبات
+     */
+    getSalaryDetails(month) {
+        return this.get(`salary_${month}`) || {};
+    }
+
+    /**
+     * حفظ تفاصيل المرتبات الإضافية لشهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @param {Object} data - تفاصيل المرتبات
+     */
+    saveSalaryDetails(month, data) {
+        this.set(`salary_${month}`, data);
+    }
+
+    /**
+     * حساب مرتب موظف لشهر معين
+     * @param {number} employeeId - معرف الموظف
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} تفاصيل المرتب المحسوب
+     */
+    calculateSalary(employeeId, month) {
+        const employee = this.getEmployeeById(employeeId);
+        if (!employee) return null;
+
+        const settings = this.getSettings();
+        const summary = this.getAttendanceSummary(employeeId, month);
+        const details = this.getSalaryDetails(month);
+        const empDetails = details[employeeId] || { advances: 0, bonus: 0, overtimeDays: 0, notes: '' };
+
+        const baseSalary = employee.baseSalary;
+        const dailyRate = baseSalary / 30;
+        const hourlyRate = dailyRate / settings.workHoursPerDay;
+
+        // حساب الخصومات
+        const absenceDeduction = dailyRate * summary.absent;
+        const lateDeduction = hourlyRate * summary.lateHours;
+        const leaveDeduction = dailyRate * summary.leave; // الإجازات تُخصم من الرصيد
+
+        // حساب البدلات
+        const overtimeAllowance = empDetails.overtimeDays * settings.overtimeRate;
+
+        // صافي المرتب
+        const totalDeductions = absenceDeduction + lateDeduction + leaveDeduction + empDetails.advances;
+        const totalAdditions = empDetails.bonus + overtimeAllowance;
+        const netSalary = baseSalary - totalDeductions + totalAdditions;
+
+        return {
+            employeeId,
+            employeeName: employee.name,
+            baseSalary,
+            dailyRate,
+            hourlyRate,
+
+            // ملخص الحضور
+            presentDays: summary.present,
+            absentDays: summary.absent,
+            leaveDays: summary.leave,
+            halfDays: summary.halfDay,
+            lateHours: summary.lateHours,
+            lateDays: summary.lateDays,
+            officialHolidays: summary.officialHoliday,
+            errands: summary.errand,
+            totalWorked: summary.totalWorked,
+
+            // الخصومات
+            absenceDeduction,
+            lateDeduction,
+            leaveDeduction,
+
+            // الإضافات
+            overtimeDays: empDetails.overtimeDays,
+            overtimeAllowance,
+            bonus: empDetails.bonus,
+            advances: empDetails.advances,
+
+            // الإجماليات
+            totalDeductions,
+            totalAdditions,
+            netSalary,
+
+            notes: empDetails.notes
+        };
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       الإعدادات (Settings)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على الإعدادات
+     * @returns {Object} الإعدادات الحالية
+     */
+    getSettings() {
+        return this.get('settings') || {
+            theme: 'dark',
+            overtimeRate: 100,
+            workHoursPerDay: 10,
+            weeklyOff: 'sunday',
+            companyName: 'شركة المحبة لقطع الغيار',
+            systemTitle: 'نظام إدارة الحضور والمرتبات'
+        };
+    }
+
+    /**
+     * حفظ الإعدادات
+     * @param {Object} settings - الإعدادات المحدثة
+     */
+    saveSettings(settings) {
+        const current = this.getSettings();
+        this.set('settings', { ...current, ...settings });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       الأرشيف (Archive)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على قائمة الأرشيف
+     * @returns {Array} قائمة الأشهر المؤرشفة
+     */
+    getArchive() {
+        return this.get('archive') || [];
+    }
+
+    /**
+     * أرشفة شهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @returns {Object} بيانات الأرشيف
+     */
+    archiveMonth(month) {
+        const archive = this.getArchive();
+
+        // التحقق من عدم وجود أرشيف مسبق لنفس الشهر
+        const existing = archive.find(a => a.month === month);
+        if (existing) {
+            // تحديث الأرشيف الموجود
+            existing.attendance = this.getAttendance(month);
+            existing.salaryDetails = this.getSalaryDetails(month);
+            existing.employees = this.getEmployees(false);
+            existing.updatedAt = new Date().toISOString();
+        } else {
+            // إنشاء أرشيف جديد
+            archive.push({
+                month,
+                attendance: this.getAttendance(month),
+                salaryDetails: this.getSalaryDetails(month),
+                employees: this.getEmployees(false),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
+        }
+
+        // ترتيب حسب الشهر تنازلياً
+        archive.sort((a, b) => b.month.localeCompare(a.month));
+        this.set('archive', archive);
+
+        return archive;
+    }
+
+    /**
+     * حذف أرشيف شهر
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     */
+    deleteArchive(month) {
+        const archive = this.getArchive();
+        const filtered = archive.filter(a => a.month !== month);
+        this.set('archive', filtered);
+    }
+
+    /**
+     * استعادة بيانات من الأرشيف
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     */
+    restoreFromArchive(month) {
+        const archive = this.getArchive();
+        const entry = archive.find(a => a.month === month);
+        if (entry) {
+            this.saveAttendance(month, entry.attendance);
+            this.saveSalaryDetails(month, entry.salaryDetails);
+        }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       التصدير والاستيراد (Export & Import)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * تصدير جميع البيانات كملف JSON
+     * @returns {Object} جميع بيانات النظام
+     */
+    exportData() {
+        const allData = {};
+        const prefix = this.PREFIX;
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(prefix)) {
+                const cleanKey = key.replace(prefix, '');
+                try {
+                    allData[cleanKey] = JSON.parse(localStorage.getItem(key));
+                } catch {
+                    allData[cleanKey] = localStorage.getItem(key);
+                }
+            }
+        }
+
+        return {
+            exportDate: new Date().toISOString(),
+            version: this.VERSION,
+            appName: 'شركة المحبة لقطع الغيار - نظام الحضور والمرتبات',
+            data: allData
+        };
+    }
+
+    /**
+     * استيراد بيانات من ملف JSON
+     * @param {Object} importedData - البيانات المستوردة
+     * @returns {boolean} نجاح العملية
+     */
+    importData(importedData) {
+        try {
+            if (!importedData || !importedData.data) {
+                throw new Error('بيانات غير صالحة');
+            }
+
+            // مسح البيانات الحالية
+            this.clearAll();
+
+            // استيراد البيانات الجديدة
+            for (const [key, value] of Object.entries(importedData.data)) {
+                this.set(key, value);
+            }
+
+            console.log('✅ تم استيراد البيانات بنجاح');
+            return true;
+        } catch (error) {
+            console.error('❌ خطأ في استيراد البيانات:', error);
+            return false;
+        }
+    }
+
+    /**
+     * مسح جميع بيانات التطبيق
+     */
+    clearAll() {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(this.PREFIX)) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+    }
+
+    /**
+     * إعادة تعيين قاعدة البيانات (مسح + إعادة تهيئة)
+     */
+    reset() {
+        this.clearAll();
+        this.init();
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       أدوات مساعدة (Utilities)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * الحصول على قائمة الأشهر المتاحة (التي بها بيانات حضور)
+     * @returns {Array<string>} قائمة الأشهر بصيغة 'YYYY-MM'
+     */
+    getAvailableMonths() {
+        const months = new Set();
+        const prefix = this.PREFIX + 'attendance_';
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(prefix)) {
+                months.add(key.replace(prefix, ''));
+            }
+        }
+
+        // إضافة الشهر الحالي دائماً
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        months.add(currentMonth);
+
+        // ترتيب تنازلياً
+        return Array.from(months).sort((a, b) => b.localeCompare(a));
+    }
+
+    /**
+     * الحصول على حجم البيانات المخزنة (بالبايت تقريبياً)
+     * @returns {number} الحجم بالبايت
+     */
+    getStorageSize() {
+        let size = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(this.PREFIX)) {
+                size += key.length + (localStorage.getItem(key) || '').length;
+            }
+        }
+        return size * 2; // UTF-16
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// إنشاء نسخة عامة من قاعدة البيانات
+// ══════════════════════════════════════════════════════════════════════════════
+const db = new DB();
+</script>
+    <script>/* ╔══════════════════════════════════════════════════════════════════════════════╗
+   ║  شركة المحبة لقطع الغيار - وحدة التحكم الرئيسية                           ║
+   ║  Main Application Controller                                               ║
+   ╚══════════════════════════════════════════════════════════════════════════════╝ */
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   1. المتغيرات العامة والثوابت
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/** أسماء الأشهر بالعربية */
+const ARABIC_MONTHS = [
+    '', // الفهرس 0 فارغ
+    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+];
+
+/** أسماء أيام الأسبوع بالعربية */
+const ARABIC_DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+/** عناوين الصفحات */
+const PAGE_TITLES = {
+    dashboard: 'لوحة التحكم',
+    attendance: 'الحضور والغياب',
+    salaries: 'المرتبات',
+    employees: 'الموظفين',
+    payslip: 'قسيمة الراتب',
+    archive: 'الأرشيف',
+    settings: 'الإعدادات'
+};
+
+/** رموز أنواع الحضور */
+const ATTENDANCE_ICONS = {
+    present: '✅',
+    absent: '❌',
+    leave: '🏖️',
+    official_holiday: '🎉',
+    errand: '📋',
+    half_day: '🕐',
+    late_1: '⏰1',
+    late_2: '⏰2',
+    late_3: '⏰3',
+    late_4: '⏰4',
+    late_5: '⏰5'
+};
+
+/** أسماء أنواع الحضور */
+const ATTENDANCE_NAMES = {
+    present: 'حضور',
+    absent: 'غياب',
+    leave: 'إجازة',
+    official_holiday: 'إجازة رسمية',
+    errand: 'مأمورية',
+    half_day: 'نصف يوم',
+    late_1: 'تأخير 1 ساعة',
+    late_2: 'تأخير 2 ساعة',
+    late_3: 'تأخير 3 ساعات',
+    late_4: 'تأخير 4 ساعات',
+    late_5: 'تأخير 5 ساعات'
+};
+
+/** الصفحة الحالية */
+let currentPage = 'dashboard';
+
+/** الشهر المحدد حالياً (للحضور والمرتبات) */
+let selectedMonth = '';
+
+/** متغير للحضور المودال */
+let attendanceModalData = { month: '', employeeId: null, day: null };
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   2. وظائف مساعدة (Utilities)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * تنسيق العملة بالجنيه المصري
+ * @param {number} num - المبلغ
+ * @returns {string} المبلغ المنسق
+ */
+function formatCurrency(num) {
+    if (num === null || num === undefined || isNaN(num)) return '0 ج.م';
+    return num.toLocaleString('ar-EG', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    }) + ' ج.م';
+}
+
+/**
+ * تنسيق رقم عادي
+ * @param {number} num - الرقم
+ * @returns {string} الرقم المنسق
+ */
+function formatNumber(num) {
+    if (num === null || num === undefined || isNaN(num)) return '0';
+    return num.toLocaleString('ar-EG', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
+}
+
+/**
+ * تنسيق التاريخ بالعربية
+ * @param {Date|string} date - التاريخ
+ * @returns {string} التاريخ المنسق
+ */
+function formatDate(date) {
+    if (typeof date === 'string') date = new Date(date);
+    if (!(date instanceof Date) || isNaN(date)) return '';
+    
+    const day = date.getDate();
+    const month = ARABIC_MONTHS[date.getMonth() + 1];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+}
+
+/**
+ * الحصول على اسم الشهر بالعربية
+ * @param {number} monthNum - رقم الشهر (1-12)
+ * @returns {string} اسم الشهر
+ */
+function getArabicMonth(monthNum) {
+    return ARABIC_MONTHS[monthNum] || '';
+}
+
+/**
+ * الحصول على عدد أيام شهر معين
+ * @param {number} year - السنة
+ * @param {number} month - الشهر (1-12)
+ * @returns {number} عدد الأيام
+ */
+function getDaysInMonth(year, month) {
+    return new Date(year, month, 0).getDate();
+}
+
+/**
+ * الحصول على الشهر الحالي بصيغة 'YYYY-MM'
+ * @returns {string} الشهر الحالي
+ */
+function getCurrentMonth() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * تحويل صيغة الشهر إلى نص عربي
+ * @param {string} monthStr - الشهر بصيغة 'YYYY-MM'
+ * @returns {string} الشهر بالعربية
+ */
+function monthToArabic(monthStr) {
+    if (!monthStr) return '';
+    const [year, month] = monthStr.split('-');
+    return `${ARABIC_MONTHS[parseInt(month)]} ${year}`;
+}
+
+/**
+ * الحصول على فئة CSS لنوع الحضور
+ * @param {string} type - نوع الحضور
+ * @returns {string} اسم الفئة
+ */
+function getAttendanceClass(type) {
+    if (!type) return '';
+    if (type.startsWith('late_')) return 'late';
+    return type;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   3. إشعارات التنبيه (Toast Notifications)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * عرض إشعار منبثق
+ * @param {string} message - نص الرسالة
+ * @param {string} type - نوع الإشعار: 'success', 'error', 'warning', 'info'
+ * @param {number} duration - مدة الظهور بالمللي ثانية
+ */
+function showToast(message, type = 'info', duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.classList.add('removing'); setTimeout(() => this.parentElement.remove(), 300)">✕</button>
+    `;
+
+    container.appendChild(toast);
+
+    // إزالة تلقائية بعد المدة المحددة
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.add('removing');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, duration);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   4. مودال التأكيد (Confirm Modal)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/** مرجع لدالة التأكيد الحالية */
+let _modalConfirmCallback = null;
+
+/**
+ * عرض مودال تأكيد
+ * @param {string} title - عنوان المودال
+ * @param {string} message - نص الرسالة
+ * @param {Function} onConfirm - دالة يتم تنفيذها عند التأكيد
+ */
+function showConfirm(title, message, onConfirm) {
+    const overlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    modalTitle.textContent = title;
+    modalBody.innerHTML = `<p style="color: var(--text-secondary); line-height: 1.8;">${message}</p>`;
+
+    _modalConfirmCallback = onConfirm;
+    overlay.classList.add('show');
+}
+
+/**
+ * إغلاق المودال
+ */
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+    _modalConfirmCallback = null;
+}
+
+// أحداث المودال
+document.getElementById('modalConfirm').addEventListener('click', () => {
+    if (_modalConfirmCallback) {
+        _modalConfirmCallback();
+    }
+    closeModal();
+});
+
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+document.getElementById('modalClose').addEventListener('click', closeModal);
+
+// إغلاق عند النقر خارج المودال
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeModal();
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   5. نظام التوجيه (Router)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * التنقل إلى صفحة معينة
+ * @param {string} page - اسم الصفحة
+ */
+function navigateTo(page) {
+    if (!PAGE_TITLES[page]) return;
+
+    // إخفاء جميع الصفحات
+    document.querySelectorAll('.page-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    // إظهار الصفحة المطلوبة
+    const targetSection = document.getElementById(`page-${page}`);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+
+    // تحديث عنصر التنقل النشط
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.page === page) {
+            item.classList.add('active');
+        }
+    });
+
+    // تحديث عنوان الصفحة
+    document.getElementById('pageTitle').textContent = PAGE_TITLES[page];
+    currentPage = page;
+
+    // تحميل بيانات الصفحة
+    loadPageData(page);
+
+    // التمرير لأعلى
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
+ * تحميل بيانات الصفحة عند التنقل إليها
+ * @param {string} page - اسم الصفحة
+ */
+function loadPageData(page) {
+    switch (page) {
+        case 'dashboard':
+            renderDashboard();
+            break;
+        case 'attendance':
+            renderAttendance();
+            break;
+        case 'salaries':
+            renderSalaries();
+            break;
+        case 'employees':
+            renderEmployees();
+            break;
+        case 'payslip':
+            renderPayslipSelectors();
+            break;
+        case 'archive':
+            renderArchive();
+            break;
+        case 'settings':
+            loadSettings();
+            break;
+    }
+}
+
+// أحداث التنقل
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo(item.dataset.page);
+    });
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   6. إدارة المظهر (Theme Management)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * تبديل المظهر بين الداكن والفاتح
+ */
+function toggleTheme() {
+    const settings = db.getSettings();
+    const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
+    
+    applyTheme(newTheme);
+    db.saveSettings({ theme: newTheme });
+    
+    // تحديث القائمة المنسدلة في الإعدادات إذا كانت مفتوحة
+    const themeSelect = document.getElementById('settingTheme');
+    if (themeSelect) themeSelect.value = newTheme;
+}
+
+/**
+ * تطبيق مظهر معين
+ * @param {string} theme - 'dark' أو 'light'
+ */
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    
+    // تحديث أيقونة ونص زر المظهر
+    const themeIcon = document.getElementById('themeIcon');
+    const themeToggle = document.getElementById('themeToggle');
+    
+    if (theme === 'dark') {
+        themeIcon.textContent = '🌙';
+        themeToggle.querySelector('.nav-text').textContent = 'الوضع الداكن';
+    } else {
+        themeIcon.textContent = '☀️';
+        themeToggle.querySelector('.nav-text').textContent = 'الوضع الفاتح';
+    }
+}
+
+// حدث زر تبديل المظهر
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   7. ملء قوائم الأشهر (Month Selectors)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * ملء قائمة منسدلة بالأشهر المتاحة
+ * @param {HTMLSelectElement} select - عنصر القائمة
+ * @param {string} [defaultValue] - القيمة الافتراضية
+ */
+function populateMonthSelect(select, defaultValue) {
+    if (!select) return;
+
+    const months = db.getAvailableMonths();
+    const currentMonth = getCurrentMonth();
+
+    // إضافة أشهر إضافية (3 أشهر للأمام و 6 للخلف)
+    const allMonths = new Set(months);
+    const now = new Date();
+    for (let i = -6; i <= 3; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        allMonths.add(m);
+    }
+
+    const sortedMonths = Array.from(allMonths).sort((a, b) => b.localeCompare(a));
+
+    select.innerHTML = '';
+    sortedMonths.forEach(month => {
+        const option = document.createElement('option');
+        option.value = month;
+        option.textContent = monthToArabic(month);
+        if (month === (defaultValue || currentMonth)) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   8. لوحة التحكم (Dashboard)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+function renderDashboard() {
+    const month = document.getElementById('dashboardMonthSelect')?.value || getCurrentMonth();
+    const employees = db.getEmployees();
+    const settings = db.getSettings();
+
+    // ملء قائمة الأشهر
+    populateMonthSelect(document.getElementById('dashboardMonthSelect'), month);
+
+    // ── بطاقات الإحصائيات ──
+    const totalEmployees = employees.length;
+    let totalSalaries = 0;
+    let totalPresent = 0;
+    let totalAbsent = 0;
+
+    employees.forEach(emp => {
+        const salary = db.calculateSalary(emp.id, month);
+        if (salary) {
+            totalSalaries += salary.netSalary;
+            totalPresent += salary.totalWorked;
+            totalAbsent += salary.absentDays;
+        }
+    });
+
+    const statsHTML = `
+        <div class="stat-card primary" style="animation-delay: 0.05s">
+            <div class="stat-icon">👥</div>
+            <div class="stat-info">
+                <h4>عدد الموظفين</h4>
+                <div class="stat-value">${totalEmployees}</div>
+            </div>
+        </div>
+        <div class="stat-card success" style="animation-delay: 0.1s">
+            <div class="stat-icon">💰</div>
+            <div class="stat-info">
+                <h4>إجمالي المرتبات</h4>
+                <div class="stat-value">${formatCurrency(totalSalaries)}</div>
+            </div>
+        </div>
+        <div class="stat-card info" style="animation-delay: 0.15s">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <h4>إجمالي أيام الحضور</h4>
+                <div class="stat-value">${formatNumber(totalPresent)}</div>
+            </div>
+        </div>
+        <div class="stat-card danger" style="animation-delay: 0.2s">
+            <div class="stat-icon">❌</div>
+            <div class="stat-info">
+                <h4>إجمالي أيام الغياب</h4>
+                <div class="stat-value">${formatNumber(totalAbsent)}</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('dashboardStats').innerHTML = statsHTML;
+
+    // ── رسم بياني للحضور ──
+    renderAttendanceChart(month, employees);
+
+    // ── رسم بياني للمرتبات ──
+    renderSalaryChart(month, employees);
+
+    // ── آخر النشاطات ──
+    renderRecentActivity(month, employees);
+}
+
+/**
+ * رسم بياني للحضور
+ */
+function renderAttendanceChart(month, employees) {
+    const container = document.getElementById('attendanceChart');
+    if (!container) return;
+
+    let maxDays = 0;
+    const data = employees.map(emp => {
+        const summary = db.getAttendanceSummary(emp.id, month);
+        const total = summary.present + summary.absent + summary.leave + summary.lateDays + summary.halfDay;
+        if (total > maxDays) maxDays = total;
+        return { name: emp.name, ...summary };
+    });
+
+    if (maxDays === 0) maxDays = 30;
+    const maxHeight = 180; // بيكسل
+
+    let html = '';
+    data.forEach(d => {
+        const presentH = (d.present / maxDays) * maxHeight;
+        const absentH = (d.absent / maxDays) * maxHeight;
+        const leaveH = (d.leave / maxDays) * maxHeight;
+        const lateH = (d.lateDays / maxDays) * maxHeight;
+
+        html += `
+            <div class="chart-bar-group">
+                <div class="chart-value">${d.present}</div>
+                <div class="chart-bar present" style="height: ${Math.max(presentH, 4)}px" title="حضور: ${d.present}"></div>
+                <div class="chart-bar absent" style="height: ${Math.max(absentH, d.absent > 0 ? 4 : 0)}px" title="غياب: ${d.absent}"></div>
+                <div class="chart-bar leave" style="height: ${Math.max(leaveH, d.leave > 0 ? 4 : 0)}px" title="إجازات: ${d.leave}"></div>
+                <div class="chart-bar late" style="height: ${Math.max(lateH, d.lateDays > 0 ? 4 : 0)}px" title="تأخير: ${d.lateDays}"></div>
+                <div class="chart-label">${d.name}</div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+/**
+ * رسم بياني للمرتبات
+ */
+function renderSalaryChart(month, employees) {
+    const container = document.getElementById('salaryChart');
+    if (!container) return;
+
+    let maxSalary = 0;
+    const data = employees.map(emp => {
+        const salary = db.calculateSalary(emp.id, month);
+        const net = salary ? salary.netSalary : 0;
+        if (net > maxSalary) maxSalary = net;
+        return { name: emp.name, net, base: emp.baseSalary };
+    });
+
+    if (maxSalary === 0) maxSalary = 1;
+
+    let html = '<div class="salary-bars">';
+    data.forEach(d => {
+        const percentage = Math.max((d.net / maxSalary) * 100, 5);
+        html += `
+            <div class="salary-bar-item">
+                <span class="salary-bar-name">${d.name}</span>
+                <div class="salary-bar-track">
+                    <div class="salary-bar-fill" style="width: ${percentage}%">
+                        <span>${formatCurrency(d.net)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+
+    container.innerHTML = html;
+}
+
+/**
+ * عرض آخر النشاطات
+ */
+function renderRecentActivity(month, employees) {
+    const container = document.getElementById('recentActivity');
+    if (!container) return;
+
+    const attendance = db.getAttendance(month);
+    const activities = [];
+
+    employees.forEach(emp => {
+        const empAtt = attendance[emp.id] || {};
+        Object.entries(empAtt).forEach(([day, type]) => {
+            activities.push({
+                name: emp.name,
+                day: parseInt(day),
+                type,
+                icon: ATTENDANCE_ICONS[type] || '📝',
+                typeName: ATTENDANCE_NAMES[type] || type
+            });
+        });
+    });
+
+    // ترتيب حسب اليوم تنازلياً وأخذ آخر 10
+    activities.sort((a, b) => b.day - a.day);
+    const recent = activities.slice(0, 10);
+
+    if (recent.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted" style="padding: 40px;">لا توجد نشاطات مسجلة لهذا الشهر</p>';
+        return;
+    }
+
+    container.innerHTML = recent.map(a => `
+        <div class="activity-item">
+            <span class="activity-icon">${a.icon}</span>
+            <span class="activity-text">
+                <strong>${a.name}</strong> — ${a.typeName}
+            </span>
+            <span class="activity-time">يوم ${a.day} ${monthToArabic(month)}</span>
+        </div>
+    `).join('');
+}
+
+// حدث تغيير شهر لوحة التحكم
+document.getElementById('dashboardMonthSelect')?.addEventListener('change', () => {
+    renderDashboard();
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   9. صفحة الحضور (Attendance Page)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+function renderAttendance() {
+    const select = document.getElementById('attendanceMonthSelect');
+    populateMonthSelect(select, select?.value || getCurrentMonth());
+    
+    const month = select?.value || getCurrentMonth();
+    const [year, monthNum] = month.split('-').map(Number);
+    const daysInMonth = getDaysInMonth(year, monthNum);
+    const employees = db.getEmployees();
+    const attendance = db.getAttendance(month);
+
+    // ── رأس الجدول ──
+    let headerHTML = '<th>الموظف</th>';
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dayDate = new Date(year, monthNum - 1, d);
+        const dayName = ARABIC_DAYS[dayDate.getDay()];
+        const isFriday = dayDate.getDay() === 5;
+        headerHTML += `<th style="${isFriday ? 'color: var(--danger);' : ''}">${d}<br><span style="font-size: 0.6rem; font-weight: 400;">${dayName.slice(0, 3)}</span></th>`;
+    }
+    document.getElementById('attendanceHeader').innerHTML = headerHTML;
+
+    // ── جسم الجدول ──
+    let bodyHTML = '';
+    employees.forEach(emp => {
+        const empAtt = attendance[emp.id] || {};
+        bodyHTML += '<tr>';
+        bodyHTML += `<td class="emp-name">${emp.name}</td>`;
+        
+        for (let d = 1; d <= daysInMonth; d++) {
+            const type = empAtt[d] || '';
+            const icon = ATTENDANCE_ICONS[type] || '';
+            const cssClass = getAttendanceClass(type);
+            
+            bodyHTML += `<td>
+                <button class="att-cell ${cssClass}" 
+                        data-emp="${emp.id}" 
+                        data-day="${d}" 
+                        data-month="${month}"
+                        title="${ATTENDANCE_NAMES[type] || 'اضغط للتسجيل'}">
+                    ${icon}
+                </button>
+            </td>`;
+        }
+        
+        bodyHTML += '</tr>';
+    });
+    document.getElementById('attendanceBody').innerHTML = bodyHTML;
+
+    // ── ملخص الحضور ──
+    let summaryHTML = '';
+    employees.forEach(emp => {
+        const summary = db.getAttendanceSummary(emp.id, month);
+        summaryHTML += `
+            <tr>
+                <td class="emp-name">${emp.name}</td>
+                <td class="text-success fw-bold">${summary.present}</td>
+                <td class="text-danger fw-bold">${summary.absent}</td>
+                <td class="text-warning fw-bold">${summary.leave}</td>
+                <td>${summary.halfDay}</td>
+                <td class="text-danger">${summary.lateHours}</td>
+                <td>${summary.errand}</td>
+                <td>${summary.officialHoliday}</td>
+            </tr>
+        `;
+    });
+    document.getElementById('attendanceSummaryBody').innerHTML = summaryHTML;
+}
+
+// حدث تغيير شهر الحضور
+document.getElementById('attendanceMonthSelect')?.addEventListener('change', renderAttendance);
+
+// ── مودال نوع الحضور ──
+
+/**
+ * فتح مودال اختيار نوع الحضور
+ */
+function openAttendanceModal(month, employeeId, day) {
+    const emp = db.getEmployeeById(employeeId);
+    if (!emp) return;
+
+    attendanceModalData = { month, employeeId, day };
+    
+    document.getElementById('attendanceModalTitle').textContent = 
+        `تسجيل حضور ${emp.name} — يوم ${day} ${monthToArabic(month)}`;
+    
+    document.getElementById('attendanceModalOverlay').classList.add('show');
+}
+
+/**
+ * إغلاق مودال الحضور
+ */
+function closeAttendanceModal() {
+    document.getElementById('attendanceModalOverlay').classList.remove('show');
+    attendanceModalData = { month: '', employeeId: null, day: null };
+}
+
+// أحداث مودال الحضور
+document.getElementById('attendanceModalClose').addEventListener('click', closeAttendanceModal);
+document.getElementById('attendanceModalOverlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeAttendanceModal();
+});
+
+// أحداث أزرار نوع الحضور
+document.getElementById('attendanceTypeGrid').addEventListener('click', (e) => {
+    const btn = e.target.closest('.att-type-btn');
+    if (!btn) return;
+
+    const type = btn.dataset.type;
+    const { month, employeeId, day } = attendanceModalData;
+
+    if (month && employeeId && day) {
+        db.updateAttendanceCell(month, employeeId, parseInt(day), type);
+        showToast(
+            type ? `تم تسجيل ${ATTENDANCE_NAMES[type] || type} بنجاح` : 'تم مسح التسجيل',
+            'success'
+        );
+        renderAttendance();
+    }
+
+    closeAttendanceModal();
+});
+
+// حدث النقر على خلايا الحضور (تفويض الأحداث)
+document.getElementById('attendanceBody').addEventListener('click', (e) => {
+    const cell = e.target.closest('.att-cell');
+    if (!cell) return;
+
+    const { emp, day, month } = cell.dataset;
+    openAttendanceModal(month, parseInt(emp), parseInt(day));
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   10. صفحة المرتبات (Salaries Page)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+function renderSalaries() {
+    const select = document.getElementById('salaryMonthSelect');
+    populateMonthSelect(select, select?.value || getCurrentMonth());
+    
+    const month = select?.value || getCurrentMonth();
+    const employees = db.getEmployees();
+    const settings = db.getSettings();
+
+    let bodyHTML = '';
+    let totalNet = 0;
+    let totalBase = 0;
+    let totalAbsDed = 0;
+    let totalLateDed = 0;
+    let totalAdvances = 0;
+    let totalBonus = 0;
+    let totalOvertime = 0;
+    let totalLeaveDed = 0;
+
+    employees.forEach(emp => {
+        const salary = db.calculateSalary(emp.id, month);
+        if (!salary) return;
+
+        const salaryDetails = db.getSalaryDetails(month);
+        const empDetails = salaryDetails[emp.id] || {};
+
+        totalNet += salary.netSalary;
+        totalBase += salary.baseSalary;
+        totalAbsDed += salary.absenceDeduction;
+        totalLateDed += salary.lateDeduction;
+        totalAdvances += salary.advances;
+        totalBonus += salary.bonus;
+        totalOvertime += salary.overtimeAllowance;
+        totalLeaveDed += salary.leaveDeduction;
+
+        bodyHTML += `
+            <tr>
+                <td class="emp-name">${salary.employeeName}</td>
+                <td class="currency">${formatCurrency(salary.baseSalary)}</td>
+                <td class="currency" style="font-size: 0.75rem;">${formatCurrency(salary.dailyRate)}</td>
+                <td class="text-center">${salary.absentDays}</td>
+                <td class="currency negative">${salary.absenceDeduction > 0 ? '-' + formatCurrency(salary.absenceDeduction) : '-'}</td>
+                <td class="text-center">${salary.lateHours}</td>
+                <td class="currency negative">${salary.lateDeduction > 0 ? '-' + formatCurrency(salary.lateDeduction) : '-'}</td>
+                <td class="text-center">${salary.leaveDays}</td>
+                <td class="currency negative">${salary.leaveDeduction > 0 ? '-' + formatCurrency(salary.leaveDeduction) : '-'}</td>
+                <td><input type="number" class="salary-input" data-emp="${emp.id}" data-field="overtimeDays" value="${empDetails.overtimeDays || 0}" min="0"></td>
+                <td class="currency positive">${salary.overtimeAllowance > 0 ? '+' + formatCurrency(salary.overtimeAllowance) : '-'}</td>
+                <td><input type="number" class="salary-input" data-emp="${emp.id}" data-field="advances" value="${empDetails.advances || 0}" min="0"></td>
+                <td><input type="number" class="salary-input" data-emp="${emp.id}" data-field="bonus" value="${empDetails.bonus || 0}" min="0"></td>
+                <td class="currency total fw-bold">${formatCurrency(salary.netSalary)}</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('salaryBody').innerHTML = bodyHTML;
+
+    // ── التذييل (الإجمالي) ──
+    document.getElementById('salaryFooter').innerHTML = `
+        <tr>
+            <td>الإجمالي</td>
+            <td class="currency">${formatCurrency(totalBase)}</td>
+            <td></td>
+            <td></td>
+            <td class="currency negative">${totalAbsDed > 0 ? '-' + formatCurrency(totalAbsDed) : '-'}</td>
+            <td></td>
+            <td class="currency negative">${totalLateDed > 0 ? '-' + formatCurrency(totalLateDed) : '-'}</td>
+            <td></td>
+            <td class="currency negative">${totalLeaveDed > 0 ? '-' + formatCurrency(totalLeaveDed) : '-'}</td>
+            <td></td>
+            <td class="currency positive">${totalOvertime > 0 ? '+' + formatCurrency(totalOvertime) : '-'}</td>
+            <td class="currency negative">${totalAdvances > 0 ? '-' + formatCurrency(totalAdvances) : '-'}</td>
+            <td class="currency positive">${totalBonus > 0 ? '+' + formatCurrency(totalBonus) : '-'}</td>
+            <td class="currency total fw-bold">${formatCurrency(totalNet)}</td>
+        </tr>
+    `;
+}
+
+// حدث تغيير شهر المرتبات
+document.getElementById('salaryMonthSelect')?.addEventListener('change', renderSalaries);
+
+// حدث حفظ تعديلات المرتبات
+document.getElementById('saveSalaryDetailsBtn')?.addEventListener('click', () => {
+    const month = document.getElementById('salaryMonthSelect')?.value || getCurrentMonth();
+    const salaryDetails = db.getSalaryDetails(month);
+    
+    // جمع القيم من الحقول
+    document.querySelectorAll('.salary-input').forEach(input => {
+        const empId = input.dataset.emp;
+        const field = input.dataset.field;
+        const value = parseFloat(input.value) || 0;
+        
+        if (!salaryDetails[empId]) {
+            salaryDetails[empId] = { advances: 0, bonus: 0, overtimeDays: 0, notes: '' };
+        }
+        salaryDetails[empId][field] = value;
+    });
+    
+    db.saveSalaryDetails(month, salaryDetails);
+    showToast('تم حفظ تعديلات المرتبات بنجاح', 'success');
+    renderSalaries(); // إعادة الحساب
+});
+
+// تحديث تلقائي عند تغيير القيم
+document.getElementById('salaryBody')?.addEventListener('input', (e) => {
+    if (e.target.classList.contains('salary-input')) {
+        // حفظ مؤقت وإعادة حساب
+        const month = document.getElementById('salaryMonthSelect')?.value || getCurrentMonth();
+        const salaryDetails = db.getSalaryDetails(month);
+        
+        const empId = e.target.dataset.emp;
+        const field = e.target.dataset.field;
+        const value = parseFloat(e.target.value) || 0;
+        
+        if (!salaryDetails[empId]) {
+            salaryDetails[empId] = { advances: 0, bonus: 0, overtimeDays: 0, notes: '' };
+        }
+        salaryDetails[empId][field] = value;
+        db.saveSalaryDetails(month, salaryDetails);
+        
+        // إعادة حساب الصف
+        renderSalaries();
+    }
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   11. صفحة الموظفين (Employees Page)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+function renderEmployees() {
+    const employees = db.getEmployees();
+    const grid = document.getElementById('employeesGrid');
+
+    if (employees.length === 0) {
+        grid.innerHTML = '<p class="text-center text-muted" style="padding: 60px; grid-column: 1/-1;">لا يوجد موظفين. اضغط "إضافة موظف" للبدء.</p>';
+        return;
+    }
+
+    grid.innerHTML = employees.map((emp, index) => `
+        <div class="employee-card" style="animation-delay: ${index * 0.05}s">
+            <div class="employee-card-header">
+                <div class="employee-avatar">${emp.name.charAt(0)}</div>
+                <div>
+                    <div class="employee-name">${emp.name}</div>
+                    <div class="employee-salary">${formatCurrency(emp.baseSalary)}</div>
+                </div>
+            </div>
+            <div class="employee-details">
+                <div class="employee-detail-item">
+                    <span>🏖️ رصيد الإجازات</span>
+                    <span>${emp.leaveBalance || 0} يوم</span>
+                </div>
+                <div class="employee-detail-item">
+                    <span>📅 تاريخ التعيين</span>
+                    <span>${emp.joinDate ? formatDate(emp.joinDate) : 'غير محدد'}</span>
+                </div>
+                ${emp.phone ? `
+                <div class="employee-detail-item">
+                    <span>📞 الهاتف</span>
+                    <span dir="ltr">${emp.phone}</span>
+                </div>` : ''}
+            </div>
+            <div class="employee-actions">
+                <button class="btn btn-primary btn-sm" onclick="editEmployee(${emp.id})">✏️ تعديل</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEmployeeConfirm(${emp.id})">🗑️ حذف</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+/**
+ * فتح نموذج إضافة موظف
+ */
+function showEmployeeForm(employee = null) {
+    const formCard = document.getElementById('employeeFormCard');
+    const formTitle = document.getElementById('employeeFormTitle');
+    
+    formCard.style.display = 'block';
+    
+    if (employee) {
+        formTitle.textContent = '✏️ تعديل بيانات الموظف';
+        document.getElementById('empId').value = employee.id;
+        document.getElementById('empName').value = employee.name;
+        document.getElementById('empSalary').value = employee.baseSalary;
+        document.getElementById('empLeave').value = employee.leaveBalance || 21;
+        document.getElementById('empPhone').value = employee.phone || '';
+        document.getElementById('empJoinDate').value = employee.joinDate || '';
+        document.getElementById('empNotes').value = employee.notes || '';
+    } else {
+        formTitle.textContent = '➕ إضافة موظف جديد';
+        document.getElementById('employeeForm').reset();
+        document.getElementById('empId').value = '';
+        document.getElementById('empLeave').value = 21;
+    }
+
+    formCard.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * إخفاء نموذج الموظف
+ */
+function hideEmployeeForm() {
+    document.getElementById('employeeFormCard').style.display = 'none';
+    document.getElementById('employeeForm').reset();
+}
+
+/**
+ * تعديل موظف
+ */
+function editEmployee(id) {
+    const emp = db.getEmployeeById(id);
+    if (emp) showEmployeeForm(emp);
+}
+
+/**
+ * تأكيد حذف موظف
+ */
+function deleteEmployeeConfirm(id) {
+    const emp = db.getEmployeeById(id);
+    if (!emp) return;
+
+    showConfirm(
+        '⚠️ تأكيد الحذف',
+        `هل أنت متأكد من حذف الموظف "<strong>${emp.name}</strong>"؟<br>سيتم إلغاء تفعيله في النظام.`,
+        () => {
+            db.deleteEmployee(id);
+            showToast(`تم حذف الموظف ${emp.name}`, 'success');
+            renderEmployees();
+        }
+    );
+}
+
+// أحداث صفحة الموظفين
+document.getElementById('addEmployeeBtn')?.addEventListener('click', () => showEmployeeForm());
+document.getElementById('cancelEmployeeBtn')?.addEventListener('click', hideEmployeeForm);
+document.getElementById('cancelEmployeeBtn2')?.addEventListener('click', hideEmployeeForm);
+
+// حدث حفظ نموذج الموظف
+document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById('empId').value;
+    const employee = {
+        name: document.getElementById('empName').value.trim(),
+        baseSalary: parseFloat(document.getElementById('empSalary').value) || 0,
+        leaveBalance: parseInt(document.getElementById('empLeave').value) || 21,
+        phone: document.getElementById('empPhone').value.trim(),
+        joinDate: document.getElementById('empJoinDate').value,
+        notes: document.getElementById('empNotes').value.trim()
+    };
+
+    if (!employee.name) {
+        showToast('يرجى إدخال اسم الموظف', 'error');
+        return;
+    }
+
+    if (id) {
+        employee.id = parseInt(id);
+    }
+
+    db.saveEmployee(employee);
+    showToast(`تم حفظ بيانات الموظف ${employee.name} بنجاح`, 'success');
+    hideEmployeeForm();
+    renderEmployees();
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   12. صفحة قسيمة الراتب (Payslip Page)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+function renderPayslipSelectors() {
+    // ملء قائمة الموظفين
+    const empSelect = document.getElementById('payslipEmployee');
+    const employees = db.getEmployees();
+    
+    empSelect.innerHTML = '<option value="">-- اختر الموظف --</option>';
+    employees.forEach(emp => {
+        const option = document.createElement('option');
+        option.value = emp.id;
+        option.textContent = emp.name;
+        empSelect.appendChild(option);
+    });
+
+    // ملء قائمة الأشهر
+    populateMonthSelect(document.getElementById('payslipMonth'));
+}
+
+/**
+ * إنشاء وعرض قسيمة الراتب
+ */
+function generatePayslip() {
+    const empId = parseInt(document.getElementById('payslipEmployee').value);
+    const month = document.getElementById('payslipMonth').value;
+
+    if (!empId) {
+        showToast('يرجى اختيار الموظف', 'warning');
+        return;
+    }
+
+    const salary = db.calculateSalary(empId, month);
+    if (!salary) {
+        showToast('لم يتم العثور على بيانات', 'error');
+        return;
+    }
+
+    const settings = db.getSettings();
+    const container = document.getElementById('payslipContent');
+
+    container.innerHTML = `
+        <div class="payslip">
+            <div class="payslip-header">
+                <div class="payslip-company">🔧 ${settings.companyName}</div>
+                <div class="payslip-title">قسيمة مرتب — ${monthToArabic(month)}</div>
+            </div>
+
+            <div class="payslip-info">
+                <div class="payslip-info-item">
+                    <span class="payslip-info-label">اسم الموظف:</span>
+                    <span class="payslip-info-value">${salary.employeeName}</span>
+                </div>
+                <div class="payslip-info-item">
+                    <span class="payslip-info-label">الشهر:</span>
+                    <span class="payslip-info-value">${monthToArabic(month)}</span>
+                </div>
+                <div class="payslip-info-item">
+                    <span class="payslip-info-label">الراتب الأساسي:</span>
+                    <span class="payslip-info-value">${formatCurrency(salary.baseSalary)}</span>
+                </div>
+                <div class="payslip-info-item">
+                    <span class="payslip-info-label">اليومي:</span>
+                    <span class="payslip-info-value">${formatCurrency(salary.dailyRate)}</span>
+                </div>
+            </div>
+
+            <h4 style="margin-bottom: 12px; color: var(--text-secondary);">📊 ملخص الحضور</h4>
+            <table class="payslip-table">
+                <tr>
+                    <th>البيان</th>
+                    <th>العدد</th>
+                </tr>
+                <tr><td>أيام الحضور</td><td>${salary.presentDays}</td></tr>
+                <tr><td>أيام الغياب</td><td>${salary.absentDays}</td></tr>
+                <tr><td>الإجازات</td><td>${salary.leaveDays}</td></tr>
+                <tr><td>نصف يوم</td><td>${salary.halfDays}</td></tr>
+                <tr><td>ساعات التأخير</td><td>${salary.lateHours}</td></tr>
+                <tr><td>المأموريات</td><td>${salary.errands}</td></tr>
+                <tr><td>الإجازات الرسمية</td><td>${salary.officialHolidays}</td></tr>
+            </table>
+
+            <h4 style="margin: 20px 0 12px; color: var(--text-secondary);">💰 تفاصيل المرتب</h4>
+            <table class="payslip-table">
+                <tr>
+                    <th>البيان</th>
+                    <th>المبلغ</th>
+                </tr>
+                <tr><td>الراتب الأساسي</td><td>${formatCurrency(salary.baseSalary)}</td></tr>
+                <tr style="color: var(--danger)"><td>خصم الغياب (${salary.absentDays} يوم)</td><td>- ${formatCurrency(salary.absenceDeduction)}</td></tr>
+                <tr style="color: var(--danger)"><td>خصم التأخير (${salary.lateHours} ساعة)</td><td>- ${formatCurrency(salary.lateDeduction)}</td></tr>
+                <tr style="color: var(--danger)"><td>خصم الإجازات (${salary.leaveDays} يوم)</td><td>- ${formatCurrency(salary.leaveDeduction)}</td></tr>
+                <tr style="color: var(--danger)"><td>سلف ومقدمات</td><td>- ${formatCurrency(salary.advances)}</td></tr>
+                <tr style="color: var(--success)"><td>بدل أوفرتايم (${salary.overtimeDays} يوم × ${settings.overtimeRate} ج.م)</td><td>+ ${formatCurrency(salary.overtimeAllowance)}</td></tr>
+                <tr style="color: var(--success)"><td>مكافآت</td><td>+ ${formatCurrency(salary.bonus)}</td></tr>
+                <tr class="payslip-total-row">
+                    <td><strong>صافي المرتب</strong></td>
+                    <td><strong>${formatCurrency(salary.netSalary)}</strong></td>
+                </tr>
+            </table>
+
+            <div class="payslip-footer">
+                <div class="payslip-signature">
+                    <div class="line"></div>
+                    <div class="label">توقيع الموظف</div>
+                </div>
+                <div class="payslip-signature">
+                    <div class="line"></div>
+                    <div class="label">توقيع المسؤول</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // إظهار زر الطباعة
+    document.getElementById('printPayslip').style.display = 'inline-flex';
+}
+
+// أحداث قسيمة الراتب
+document.getElementById('generatePayslip')?.addEventListener('click', generatePayslip);
+document.getElementById('printPayslip')?.addEventListener('click', () => {
+    window.print();
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   13. صفحة الأرشيف (Archive Page)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+function renderArchive() {
+    const archive = db.getArchive();
+    const container = document.getElementById('archiveList');
+
+    if (archive.length === 0) {
+        container.innerHTML = `
+            <div class="archive-empty">
+                <span style="font-size: 4rem; display: block; margin-bottom: 16px;">🗄️</span>
+                <p>لا توجد أشهر مؤرشفة</p>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 8px;">
+                    اضغط "أرشفة الشهر الحالي" لحفظ بيانات الشهر
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = archive.map(entry => `
+        <div class="archive-item">
+            <div class="archive-item-info">
+                <span class="archive-item-icon">📁</span>
+                <div>
+                    <div class="archive-item-title">${monthToArabic(entry.month)}</div>
+                    <div class="archive-item-date">تم الأرشفة: ${formatDate(entry.createdAt)}</div>
+                </div>
+            </div>
+            <div class="archive-item-actions">
+                <button class="btn btn-primary btn-sm" onclick="restoreArchive('${entry.month}')">📥 استعادة</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteArchiveConfirm('${entry.month}')">🗑️ حذف</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+/**
+ * أرشفة الشهر الحالي
+ */
+function archiveCurrentMonth() {
+    const month = getCurrentMonth();
+    showConfirm(
+        '📥 أرشفة الشهر',
+        `هل تريد أرشفة بيانات شهر <strong>${monthToArabic(month)}</strong>؟`,
+        () => {
+            db.archiveMonth(month);
+            showToast(`تم أرشفة شهر ${monthToArabic(month)} بنجاح`, 'success');
+            renderArchive();
+        }
+    );
+}
+
+/**
+ * استعادة بيانات من الأرشيف
+ */
+function restoreArchive(month) {
+    showConfirm(
+        '📥 استعادة البيانات',
+        `هل تريد استعادة بيانات شهر <strong>${monthToArabic(month)}</strong>؟<br>⚠️ سيتم استبدال البيانات الحالية لهذا الشهر.`,
+        () => {
+            db.restoreFromArchive(month);
+            showToast(`تم استعادة بيانات ${monthToArabic(month)}`, 'success');
+        }
+    );
+}
+
+/**
+ * تأكيد حذف أرشيف
+ */
+function deleteArchiveConfirm(month) {
+    showConfirm(
+        '⚠️ حذف الأرشيف',
+        `هل أنت متأكد من حذف أرشيف شهر <strong>${monthToArabic(month)}</strong>؟<br>لا يمكن التراجع عن هذا الإجراء.`,
+        () => {
+            db.deleteArchive(month);
+            showToast(`تم حذف أرشيف ${monthToArabic(month)}`, 'success');
+            renderArchive();
+        }
+    );
+}
+
+// حدث زر الأرشفة
+document.getElementById('archiveCurrentMonth')?.addEventListener('click', archiveCurrentMonth);
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   14. صفحة الإعدادات (Settings Page)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * تحميل الإعدادات في النموذج
+ */
+function loadSettings() {
+    const settings = db.getSettings();
+    
+    document.getElementById('settingTheme').value = settings.theme || 'dark';
+    document.getElementById('settingOvertimeRate').value = settings.overtimeRate || 100;
+    document.getElementById('settingWorkHours').value = settings.workHoursPerDay || 10;
+    document.getElementById('settingWeeklyOff').value = settings.weeklyOff || 'sunday';
+}
+
+// حدث حفظ الإعدادات
+document.getElementById('settingsForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const settings = {
+        theme: document.getElementById('settingTheme').value,
+        overtimeRate: parseFloat(document.getElementById('settingOvertimeRate').value) || 100,
+        workHoursPerDay: parseInt(document.getElementById('settingWorkHours').value) || 10,
+        weeklyOff: document.getElementById('settingWeeklyOff').value || 'sunday'
+    };
+
+    db.saveSettings(settings);
+    applyTheme(settings.theme);
+    showToast('تم حفظ الإعدادات بنجاح', 'success');
+});
+
+// حدث تغيير المظهر من الإعدادات
+document.getElementById('settingTheme')?.addEventListener('change', (e) => {
+    applyTheme(e.target.value);
+    db.saveSettings({ theme: e.target.value });
+});
+
+// ── النسخ الاحتياطي ──
+
+// تصدير البيانات
+document.getElementById('exportDataBtn')?.addEventListener('click', () => {
+    const data = db.exportData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `almahaba_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+    showToast('تم تصدير البيانات بنجاح', 'success');
+});
+
+// استيراد البيانات
+document.getElementById('importDataInput')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const data = JSON.parse(event.target.result);
+            
+            showConfirm(
+                '📥 استيراد البيانات',
+                `هل تريد استيراد البيانات من الملف "${file.name}"؟<br>⚠️ سيتم استبدال جميع البيانات الحالية.`,
+                () => {
+                    const success = db.importData(data);
+                    if (success) {
+                        showToast('تم استيراد البيانات بنجاح! جاري إعادة التحميل...', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast('فشل استيراد البيانات. تأكد من صحة الملف.', 'error');
+                    }
+                }
+            );
+        } catch (err) {
+            showToast('ملف غير صالح. يرجى اختيار ملف JSON صحيح.', 'error');
+        }
+    };
+    reader.readAsText(file);
+    
+    // إعادة تعيين الحقل للسماح بإعادة اختيار نفس الملف
+    e.target.value = '';
+});
+
+// مسح جميع البيانات
+document.getElementById('resetDataBtn')?.addEventListener('click', () => {
+    showConfirm(
+        '🗑️ مسح جميع البيانات',
+        '⚠️ <strong>تحذير خطير!</strong><br>سيتم حذف جميع البيانات نهائياً وإعادة تعيين النظام بالكامل.<br><br>هل أنت متأكد تماماً؟',
+        () => {
+            db.reset();
+            showToast('تم مسح جميع البيانات وإعادة التعيين. جاري إعادة التحميل...', 'warning');
+            setTimeout(() => location.reload(), 1500);
+        }
+    );
+});
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   15. التاريخ الحالي (Current Date Display)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+function updateCurrentDate() {
+    const now = new Date();
+    const dayName = ARABIC_DAYS[now.getDay()];
+    const formatted = formatDate(now);
+    
+    const dateEl = document.getElementById('currentDate');
+    if (dateEl) {
+        dateEl.textContent = `📅 ${dayName}، ${formatted}`;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   16. التهيئة الرئيسية (Main Initialization)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 بدء تشغيل نظام المحبة لإدارة الحضور والمرتبات...');
+
+    // 1. تهيئة قاعدة البيانات
+    db.init();
+
+    // 2. تطبيق المظهر المحفوظ
+    const settings = db.getSettings();
+    applyTheme(settings.theme || 'dark');
+
+    // 3. عرض التاريخ الحالي
+    updateCurrentDate();
+    setInterval(updateCurrentDate, 60000); // تحديث كل دقيقة
+
+    // 4. الشهر الافتراضي
+    selectedMonth = getCurrentMonth();
+
+    // 5. التنقل من الرابط (hash)
+    const hash = window.location.hash.replace('#', '');
+    if (hash && PAGE_TITLES[hash]) {
+        navigateTo(hash);
+    } else {
+        navigateTo('dashboard');
+    }
+
+    // 6. الاستماع لتغييرات الرابط
+    window.addEventListener('hashchange', () => {
+        const page = window.location.hash.replace('#', '');
+        if (page && PAGE_TITLES[page]) {
+            navigateTo(page);
+        }
+    });
+
+    // 7. زر القائمة في الموبايل
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+        });
+    }
+
+    console.log('✅ تم تشغيل النظام بنجاح!');
+    console.log(`📊 عدد الموظفين: ${db.getEmployees().length}`);
+    console.log(`📅 الشهر الحالي: ${monthToArabic(getCurrentMonth())}`);
+});
+</script>
+
+</body>
+</html>
+

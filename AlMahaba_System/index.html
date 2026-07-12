@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="نظام إدارة الحضور والمرتبات - شركة المحبة لقطع الغيار">
+    <meta name="theme-color" content="#0f172a">
+    <title>شركة المحبة لقطع الغيار | نظام الحضور والمرتبات</title>
+
+    <!-- Google Font: Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         شاشة تسجيل الدخول (Login Overlay)
+         ════════════════════════════════════════════════════════════════════ -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card glass-card">
+            <div class="login-header">
+                <h2>شركة المحبة لقطع الغيار</h2>
+                <p>تسجيل الدخول للنظام</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="loginUsername" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="loginPassword" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">دخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         الشريط الجانبي - Sidebar Navigation
+         ════════════════════════════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+        <!-- شعار الشركة -->
+        <div class="sidebar-header">
+            <div class="logo-icon">🔧</div>
+            <div class="logo-text">
+                <h1>المحبة</h1>
+                <span>لقطع الغيار</span>
+            </div>
+        </div>
+
+        <!-- قائمة التنقل -->
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-item active admin-only" data-page="dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">لوحة التحكم</span>
+            </a>
+            <a href="#treasury" class="nav-item admin-only" data-page="treasury">
+                <span class="nav-icon">💵</span>
+                <span class="nav-text">الخزنة واليومية</span>
+            </a>
+            <a href="#suppliers" class="nav-item admin-only" data-page="suppliers">
+                <span class="nav-icon">🚚</span>
+                <span class="nav-text">الموردين</span>
+            </a>
+            <a href="#attendance" class="nav-item" data-page="attendance">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">الحضور والغياب</span>
+            </a>
+            <a href="#salaries" class="nav-item admin-only" data-page="salaries">
+                <span class="nav-icon">💰</span>
+                <span class="nav-text">المرتبات</span>
+            </a>
+            <a href="#employees" class="nav-item admin-only" data-page="employees">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">الموظفين</span>
+            </a>
+            <a href="#payslip" class="nav-item admin-only" data-page="payslip">
+                <span class="nav-icon">🧾</span>
+                <span class="nav-text">قسيمة الراتب</span>
+            </a>
+            <a href="#archive" class="nav-item admin-only" data-page="archive">
+                <span class="nav-icon">🗄️</span>
+                <span class="nav-text">الأرشيف</span>
+            </a>
+            <a href="#users" class="nav-item admin-only" data-page="users">
+                <span class="nav-icon">🛡️</span>
+                <span class="nav-text">المستخدمين والصلاحيات</span>
+            </a>
+            <a href="#settings" class="nav-item admin-only" data-page="settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">الإعدادات</span>
+            </a>
+        </nav>
+
+        <!-- زر تسجيل الخروج و تبديل الوضع -->
+        <div class="sidebar-footer">
+            <button class="btn btn-danger w-100" id="logoutBtn" style="margin-bottom: 10px; display: none;">
+                تسجيل الخروج
+            </button>
+            <button class="theme-toggle" id="themeToggle" title="تبديل المظهر">
+                <span class="theme-icon" id="themeIcon">🌙</span>
+                <span class="nav-text">الوضع الداكن</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         زر فتح القائمة للموبايل
+         ════════════════════════════════════════════════════════════════════ -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="فتح القائمة">☰</button>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         المحتوى الرئيسي - Main Content Area
+         ════════════════════════════════════════════════════════════════════ -->
+    <main class="main-content" id="mainContent">
+
+        <!-- الرأس العلوي -->
+        <header class="top-header">
+            <div class="header-info">
+                <h2 class="page-title" id="pageTitle">لوحة التحكم</h2>
+                <p class="page-subtitle">شركة المحبة لقطع الغيار — نظام إدارة الحضور والمرتبات</p>
+            </div>
+            <div class="header-actions">
+                <div class="current-date" id="currentDate"></div>
+            </div>
+        </header>
+
+        <!-- ═══════════════════════════════════════════════════════════════════════
+             صفحة الخزنة - Treasury
+             ═══════════════════════════════════════════════════════════════════════ -->
+        <section class="page-section admin-only" id="page-treasury">
+            <!-- سيتم توليد المحتوى بواسطة treasury.js -->
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════════════════
+             صفحة الموردين - Suppliers
+             ═══════════════════════════════════════════════════════════════════════ -->
+        <section class="page-section admin-only" id="page-suppliers">
+            <!-- سيتم توليد المحتوى بواسطة suppliers.js -->
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة لوحة التحكم - Dashboard
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section active admin-only" id="page-dashboard">
+            <!-- بطاقات الإحصائيات -->
+            <div class="stats-grid" id="dashboardStats">
+                <!-- يتم تعبئتها ديناميكياً -->
+            </div>
+
+            <!-- الرسوم البيانية -->
+            <div class="charts-grid">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>📈 ملخص الحضور الشهري</h3>
+                        <select class="input-field input-sm" id="dashboardMonthSelect"></select>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" id="attendanceChart"></div>
+                    </div>
+                </div>
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>💵 ملخص المرتبات</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" id="salaryChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- آخر النشاطات -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>🕐 آخر تحديثات الحضور</h3>
+                </div>
+                <div class="card-body">
+                    <div class="recent-activity" id="recentActivity">
+                        <!-- يتم تعبئتها ديناميكياً -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة الحضور والغياب - Attendance
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-attendance">
+            <div class="card">
+                <div class="card-header">
+                    <h3>📋 سجل الحضور والغياب</h3>
+                    <div class="header-controls">
+                        <select class="input-field input-sm" id="attendanceMonthSelect"></select>
+                        <button class="btn btn-warning" onclick="window.Attendance.showAdvanceModal()">
+                            <i class="fas fa-money-bill-wave"></i> تسجيل سلفة
+                        </button>
+                        <button class="btn btn-success" onclick="window.Attendance.showBonusModal()">
+                            <i class="fas fa-gift"></i> صرف مكافأة فورية
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- مفتاح الألوان -->
+                    <div class="attendance-legend" id="attendanceLegend">
+                        <span class="legend-item" data-type="present"><span class="legend-color present"></span>✅ حضور</span>
+                        <span class="legend-item" data-type="absent"><span class="legend-color absent"></span>❌ غياب</span>
+                        <span class="legend-item" data-type="leave"><span class="legend-color leave"></span>🏖️ إجازة</span>
+                        <span class="legend-item" data-type="official_holiday"><span class="legend-color official_holiday"></span>🎉 رسمية</span>
+                        <span class="legend-item" data-type="errand"><span class="legend-color errand"></span>📋 مأمورية</span>
+                        <span class="legend-item" data-type="half_day"><span class="legend-color half_day"></span>🕐 نص يوم</span>
+                        <span class="legend-item" data-type="late"><span class="legend-color late"></span>⏰ تأخير</span>
+                    </div>
+
+                    <!-- جدول الحضور -->
+                    <div class="table-responsive">
+                        <table class="table attendance-table" id="attendanceTable">
+                            <thead>
+                                <tr id="attendanceHeader">
+                                    <!-- يتم تعبئتها ديناميكياً -->
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceBody">
+                                <!-- يتم تعبئتها ديناميكياً -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ملخص الحضور -->
+            <div class="card mt-1">
+                <div class="card-header">
+                    <h3>📊 ملخص الحضور</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="attendanceSummaryTable">
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>أيام الحضور</th>
+                                    <th>أيام الغياب</th>
+                                    <th>الإجازات</th>
+                                    <th>نص يوم</th>
+                                    <th>ساعات التأخير</th>
+                                    <th>مأموريات</th>
+                                    <th>عطلة رسمية</th>
+                                    <th>السلف (ج)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceSummaryBody">
+                                <!-- يتم تعبئتها ديناميكياً -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة المرتبات - Salaries
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-salaries">
+            <div class="card">
+                <div class="card-header">
+                    <h3>💰 جدول المرتبات</h3>
+                    <div class="header-controls">
+                        <select class="input-field input-sm" id="salaryMonthSelect"></select>
+                        <button class="btn btn-primary" id="saveSalaryDetailsBtn">💾 حفظ التعديلات</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table salary-table" id="salaryTable">
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>الراتب الأساسي</th>
+                                    <th>اليومي</th>
+                                    <th>أيام الغياب</th>
+                                    <th>خصم الغياب</th>
+                                    <th>ساعات التأخير</th>
+                                    <th>خصم التأخير</th>
+                                    <th>أيام الإجازة</th>
+                                    <th>خصم الإجازات</th>
+                                    <th>أيام الأوفرتايم</th>
+                                    <th>بدل أوفرتايم</th>
+                                    <th>سلف</th>
+                                    <th>مكافأة</th>
+                                    <th>الصافي</th>
+                                    <th>بواسطة</th>
+                                    <th>المرفقات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salaryBody">
+                                <!-- يتم تعبئتها ديناميكياً -->
+                            </tbody>
+                            <tfoot id="salaryFooter">
+                                <!-- يتم تعبئتها ديناميكياً -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة الموظفين - Employees
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-employees">
+            <div class="card">
+                <div class="card-header">
+                    <h3>👥 إدارة الموظفين</h3>
+                    <button class="btn btn-primary" id="addEmployeeBtn">➕ إضافة موظف</button>
+                </div>
+                <div class="card-body">
+                    <div class="employees-grid" id="employeesGrid">
+                        <!-- يتم تعبئتها ديناميكياً -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج إضافة/تعديل موظف -->
+            <div class="card mt-1" id="employeeFormCard" style="display: none;">
+                <div class="card-header">
+                    <h3 id="employeeFormTitle">➕ إضافة موظف جديد</h3>
+                    <button class="btn btn-ghost" id="cancelEmployeeBtn">✕ إلغاء</button>
+                </div>
+                <div class="card-body">
+                    <form id="employeeForm" class="form-grid">
+                        <input type="hidden" id="empId">
+                        <div class="form-group">
+                            <label for="empName">اسم الموظف</label>
+                            <input type="text" class="input-field" id="empName" placeholder="أدخل اسم الموظف" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="empSalary">الراتب الأساسي (ج.م)</label>
+                            <input type="number" class="input-field" id="empSalary" placeholder="0" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="empLeave">رصيد الإجازات (يوم)</label>
+                            <input type="number" class="input-field" id="empLeave" placeholder="21" value="21" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="empPhone">رقم الهاتف</label>
+                            <input type="tel" class="input-field" id="empPhone" placeholder="01xxxxxxxxx">
+                        </div>
+                        <div class="form-group">
+                            <label for="empJoinDate">تاريخ التعيين</label>
+                            <input type="date" class="input-field" id="empJoinDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="empNotes">ملاحظات</label>
+                            <textarea class="input-field" id="empNotes" placeholder="ملاحظات إضافية..." rows="3"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">💾 حفظ</button>
+                            <button type="button" class="btn btn-ghost" id="cancelEmployeeBtn2">إلغاء</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة قسيمة الراتب - Payslip
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-payslip">
+            <div class="card">
+                <div class="card-header">
+                    <h3>🧾 قسيمة الراتب</h3>
+                    <div class="header-controls">
+                        <select class="input-field input-sm" id="payslipEmployee"></select>
+                        <select class="input-field input-sm" id="payslipMonth"></select>
+                        <button class="btn btn-primary" id="generatePayslip">📄 عرض القسيمة</button>
+                        <button class="btn btn-success" id="printPayslip" style="display:none;">🖨️ طباعة</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="payslipContent" class="payslip-container">
+                        <div class="payslip-placeholder">
+                            <span class="placeholder-icon">🧾</span>
+                            <p>اختر الموظف والشهر ثم اضغط "عرض القسيمة"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة الأرشيف - Archive
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-archive">
+            <div class="card">
+                <div class="card-header">
+                    <h3>🗄️ الأرشيف الشهري</h3>
+                    <button class="btn btn-primary" id="archiveCurrentMonth">📥 أرشفة الشهر الحالي</button>
+                </div>
+                <div class="card-body">
+                    <div class="archive-list" id="archiveList">
+                        <!-- يتم تعبئتها ديناميكياً -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             صفحة الإعدادات - Settings
+             ═══════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-settings">
+            <div class="settings-grid">
+                <!-- إعدادات عامة -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>⚙️ الإعدادات العامة</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="settingsForm">
+                            <div class="form-group">
+                                <label for="settingTheme">المظهر</label>
+                                <select class="input-field" id="settingTheme">
+                                    <option value="dark">🌙 داكن</option>
+                                    <option value="light">☀️ فاتح</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="settingOvertimeRate">بدل الأوفرتايم (ج.م / يوم)</label>
+                                <input type="number" class="input-field" id="settingOvertimeRate" value="100" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingWorkHours">ساعات العمل اليومية</label>
+                                <input type="number" class="input-field" id="settingWorkHours" value="10" min="1" max="24">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingWeeklyOff">يوم الإجازة الأسبوعية</label>
+                                <select class="input-field" id="settingWeeklyOff">
+                                    <option value="friday">الجمعة</option>
+                                    <option value="saturday">السبت</option>
+                                    <option value="sunday">الأحد</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">💾 حفظ الإعدادات</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- النسخ الاحتياطي -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>💾 النسخ الاحتياطي</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="backup-actions">
+                            <button class="btn btn-success btn-block" id="exportDataBtn">
+                                📤 تصدير البيانات
+                            </button>
+                            <p class="help-text">تصدير جميع البيانات كملف JSON للحفظ الاحتياطي</p>
+
+                            <div class="divider"></div>
+
+                            <label class="btn btn-warning btn-block" for="importDataInput">
+                                📥 استيراد البيانات
+                            </label>
+                            <input type="file" id="importDataInput" accept=".json" style="display:none;">
+                            <p class="help-text">استيراد بيانات من نسخة احتياطية سابقة</p>
+
+                            <div class="divider"></div>
+
+                            <button class="btn btn-danger btn-block" id="resetDataBtn">
+                                🗑️ مسح جميع البيانات
+                            </button>
+                            <p class="help-text">تحذير: سيتم حذف جميع البيانات نهائياً!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════════════════════
+             صفحة إدارة المستخدمين (Users & Permissions)
+             ════════════════════════════════════════════════════════════════════ -->
+        <section class="page-section" id="page-users">
+            <div class="page-header">
+                <h2>إدارة المستخدمين والصلاحيات</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="addUserBtn">
+                        <span class="icon">➕</span> إضافة مستخدم
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>اسم الدخول</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersList">
+                            <!-- سيتم ملء هذا الجزء بواسطة الجافاسكريبت -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════════════════
+             مودالز عامة للخزنة والموردين
+             ═══════════════════════════════════════════════════════════════════════ -->
+        <div id="treasuryPrintArea" class="print-only" style="display:none;"></div>
+
+        <div id="treasuryReportModal" class="modal-overlay hidden print-hidden">
+            <div class="modal-content glass-card" style="max-width: 400px; margin: auto; margin-top: 100px;">
+                <div class="modal-header">
+                    <h3 id="reportModalTitle">استخراج التقرير المالي</h3>
+                    <button class="modal-close" id="reportModalClose">✕</button>
+                </div>
+                <div class="modal-body" id="reportModalBody">
+                    <form id="treasuryReportForm">
+                        <div class="form-group">
+                            <label>من تاريخ</label>
+                            <input type="date" id="repFromDate" required value="">
+                        </div>
+                        <div class="form-group">
+                            <label>إلى تاريخ</label>
+                            <input type="date" id="repToDate" required value="">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">عرض التقرير وطباعته</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="imageModalOverlay" class="modal-overlay print-hidden">
+            <div class="modal-content glass-card" style="max-width: 800px; margin: auto; margin-top: 50px;">
+                <div class="modal-header">
+                    <h3>عرض المرفق</h3>
+                    <button class="modal-close" onclick="document.getElementById('imageModalOverlay').classList.remove('show')">×</button>
+                </div>
+                <div class="modal-body" style="padding: 20px;">
+                    <img id="attachedImagePreview" src="" style="max-width: 100%; max-height: 70vh; border-radius: 8px;">
+                </div>
+            </div>
+        </div>
+
+        <div id="editTxModalOverlay" class="modal-overlay print-hidden">
+            <div class="modal-content glass-card" style="max-width: 500px; margin: auto; margin-top: 50px;">
+                <div class="modal-header">
+                    <h3>تعديل العملية</h3>
+                    <button class="modal-close" onclick="document.getElementById('editTxModalOverlay').classList.remove('show')">×</button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTxForm">
+                        <input type="hidden" id="editTxId">
+                        <input type="hidden" id="editTxIsSupplier">
+                        <input type="hidden" id="editTxType">
+                        <input type="hidden" id="editTxPaymentMethod">
+                        <div class="form-group">
+                            <label>التاريخ</label>
+                            <input type="date" id="editTxDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>المبلغ الإجمالي / الأساسي</label>
+                            <input type="number" id="editTxAmount" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الفاتورة / المرجع</label>
+                            <input type="text" id="editTxInvoice">
+                        </div>
+                        <div class="form-group">
+                            <label>البيان / ملاحظات</label>
+                            <textarea id="editTxNotes" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>تحديث المرفق (اختياري)</label>
+                            <input type="file" id="editTxImage" class="input-field" accept="image/*" style="width:100%; padding: 5px;">
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">حفظ التعديلات</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         مكون المودال - Modal Component
+         ════════════════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">تأكيد</h3>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- محتوى المودال -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="modalConfirm">تأكيد</button>
+                <button class="btn btn-ghost" id="modalCancel">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         مكون التنبيهات - Toast Notifications
+         ════════════════════════════════════════════════════════════════════ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         مودال اختيار نوع الحضور
+         ════════════════════════════════════════════════════════════════════ -->
+        <!-- نافذة السلف -->
+    <div class="modal-overlay" id="advanceModalOverlay">
+        <div class="modal attendance-modal" style="width: 400px; padding: 20px;">
+            <div class="modal-header">
+                <h3>تسجيل سلفة نقدية</h3>
+                <button class="modal-close" onclick="window.Attendance.hideAdvanceModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="advanceForm" onsubmit="window.Attendance.saveAdvance(event)">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>اختر الموظف</label>
+                        <select id="advEmployee" class="input-field" required style="width: 100%; padding: 8px;">
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>مبلغ السلفة (ج.م)</label>
+                        <input type="number" id="advAmount" class="input-field" required min="1" step="1" style="width: 100%; padding: 8px;">
+                    </div>
+                    <div class="form-actions" style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="window.Attendance.hideAdvanceModal()">إلغاء</button>
+                        <button type="submit" class="btn btn-warning">تسجيل السلفة</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة المكافأة الفورية -->
+    <div class="modal-overlay" id="bonusModalOverlay">
+        <div class="modal attendance-modal" style="width: 400px; padding: 20px;">
+            <div class="modal-header">
+                <h3>صرف مكافأة / بونص فوري</h3>
+                <button class="modal-close" onclick="window.Attendance.hideBonusModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="bonusForm" onsubmit="window.Attendance.saveBonus(event)">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>اسم الموظف</label>
+                        <select id="bonusEmployee" class="input-field" required style="width: 100%; padding: 8px;">
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>قيمة المكافأة (ج.م)</label>
+                        <input type="number" id="bonusAmount" class="input-field" required min="1" step="1" style="width: 100%; padding: 8px;">
+                    </div>
+                    <div class="form-actions" style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="window.Attendance.hideBonusModal()">إلغاء</button>
+                        <button type="submit" class="btn btn-success">تسجيل وصرف</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="attendanceModalOverlay">
+        <div class="modal attendance-modal" id="attendanceModal">
+            <div class="modal-header">
+                <h3 id="attendanceModalTitle">تسجيل الحضور</h3>
+                <button class="modal-close" id="attendanceModalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="attendance-type-grid" id="attendanceTypeGrid">
+                    <button class="att-type-btn present" data-type="present">✅ حضور</button>
+                    <button class="att-type-btn absent" data-type="absent">❌ غياب</button>
+                    <button class="att-type-btn leave" data-type="leave">🏖️ إجازة</button>
+                    <button class="att-type-btn official_holiday" data-type="official_holiday">🎉 إجازة رسمية</button>
+                    <button class="att-type-btn errand" data-type="errand">📋 مأمورية</button>
+                    <button class="att-type-btn half_day" data-type="half_day">🕐 نص يوم</button>
+                    <button class="att-type-btn late" data-type="late_1">⏰ تأخير 1 ساعة</button>
+                    <button class="att-type-btn late" data-type="late_2">⏰ تأخير 2 ساعة</button>
+                    <button class="att-type-btn late" data-type="late_3">⏰ تأخير 3 ساعات</button>
+                    <button class="att-type-btn late" data-type="late_4">⏰ تأخير 4 ساعات</button>
+                    <button class="att-type-btn late" data-type="late_5">⏰ تأخير 5 ساعات</button>
+                    <button class="att-type-btn clear" data-type="">🚫 مسح</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         ملفات JavaScript
+         ════════════════════════════════════════════════════════════════════ -->
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/db.js"></script>
+    <script src="js/app.js?v=26"></script>
+    <script src="js/login.js?v=26"></script>
+    <script src="js/users.js?v=26"></script>
+    <script src="js/treasury.js?v=26"></script>
+    <script src="js/suppliers.js?v=26"></script>
+    <script src="js/dashboard.js?v=26"></script>
+    <script src="js/attendance.js?v=26"></script>
+    <script src="js/salary.js?v=26"></script>
+    <script src="js/employees.js?v=26"></script>
+    <script src="js/payslip.js?v=26"></script>
+    <script src="js/archive.js?v=26"></script>
+    <script src="js/settings.js?v=26"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
