@@ -12,7 +12,15 @@ class DB {
         if (!obj || typeof obj !== 'object') return obj;
         if (Array.isArray(obj)) return obj.map(o => this._toDb(o));
         const res = {};
-        for (let k in obj) res[k.toLowerCase()] = obj[k];
+        for (let k in obj) {
+            const lowerK = k.toLowerCase();
+            if (['notes', 'handledby'].includes(lowerK)) continue;
+            let val = obj[k];
+            if ((lowerK === 'id' || lowerK === 'supplierid') && typeof val === 'number' && val > 2147483647) {
+                val = Math.floor(val / 1000);
+            }
+            res[lowerK] = val;
+        }
         return res;
     }
 
@@ -82,7 +90,7 @@ class DB {
     }
 
     async _syncAllToSupabase() {
-        if (!this.supabase || localStorage.getItem('almahaba_synced_v4')) return;
+        if (!this.supabase || localStorage.getItem('almahaba_synced_v5')) return;
         
         if(window.showToast) {
             window.showToast('🚀 جاري رفع داتا شركتك إلى السحابة لأول مرة...', 'info');
@@ -100,7 +108,7 @@ class DB {
         await this._syncToSupabase('attendance', this.get('attendance'));
         await this._syncToSupabase('salary_details', this.get('salary_details'));
         await this._syncToSupabase('archive', this.get('archive'));
-        localStorage.setItem('almahaba_synced_v4', 'true');
+        localStorage.setItem('almahaba_synced_v5', 'true');
         
         if(window.showToast) {
             setTimeout(() => window.showToast('✅ تمت المزامنة بنجاح! السحابة الآن جاهزة.', 'success'), 2000);
