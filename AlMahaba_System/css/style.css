@@ -1849,6 +1849,14 @@ select.input-field {
         padding: 0 !important;
     }
 
+    /* إخفاء الصفحات العادية وإظهار تقرير الخزنة فقط عند الطباعة */
+    body.printing-treasury .page-section {
+        display: none !important;
+    }
+    body.printing-treasury #treasuryPrintArea {
+        display: block !important;
+    }
+
     .page-section {
         display: none !important;
     }

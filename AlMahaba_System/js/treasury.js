@@ -585,60 +585,43 @@ window.Treasury = (function () {
         };
 
         const printHtml = `
-            <!DOCTYPE html>
-            <html lang="ar">
-            <head>
-                <meta charset="UTF-8">
-                <title>تقرير الخزنة</title>
-                <style>
-                    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-                    @page { size: A4 portrait; margin: 15mm; }
-                    * { box-sizing: border-box; }
-                    body { 
-                        font-family: 'Cairo', sans-serif; 
-                        margin: 0; 
-                        padding: 0; 
-                        color: #111; 
-                        background: #fff; 
-                        font-size: 14px; 
-                        /* IMPORTANT: Body must be LTR to prevent Chrome print offset bugs */
-                        direction: ltr; 
-                    }
-                    /* Wrapper forces RTL for Arabic content */
-                    .rtl-wrapper {
-                        direction: rtl;
-                        text-align: right;
-                        width: 100%;
-                        margin: 0 auto;
-                    }
-                    .header { text-align: center; border-bottom: 3px solid #1e293b; padding-bottom: 15px; margin-bottom: 25px; }
-                    .header h1 { margin: 0; font-size: 26px; color: #0f172a; }
-                    .header h2 { margin: 5px 0; font-size: 18px; color: #475569; }
-                    .header .meta { display: flex; justify-content: space-between; margin-top: 15px; font-weight: 600; font-size: 14px; }
-                    
-                    .summary-container { display: flex; gap: 20px; margin-bottom: 25px; }
-                    .summary-box { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
-                    .summary-box h3 { margin: 0; padding: 10px; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; font-size: 15px; text-align: center; }
-                    .summary-content { padding: 10px 15px; }
-                    .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
-                    .summary-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-                    
-                    table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
-                    th, td { border: 1px solid #cbd5e1; padding: 10px 8px; text-align: right; word-wrap: break-word; }
-                    th { background-color: #f8fafc; font-weight: 700; color: #0f172a; }
-                    th:nth-child(1) { width: 12%; }
-                    th:nth-child(2) { width: 14%; }
-                    th:nth-child(3) { width: 12%; }
-                    th:nth-child(4) { width: 20%; }
-                    th:nth-child(5) { width: 30%; }
-                    th:nth-child(6) { width: 12%; }
-                    
-                    tr:nth-child(even) { background-color: #f8fafc; }
-                    .amount { font-weight: bold; }
-                </style>
-            </head>
-            <body>
-              <div class="rtl-wrapper">
+            <style>
+                .treasury-print-wrapper {
+                    direction: rtl;
+                    text-align: right;
+                    width: 100%;
+                    margin: 0 auto;
+                    font-family: 'Cairo', sans-serif;
+                    color: #111;
+                    background: #fff;
+                    font-size: 14px;
+                }
+                .treasury-print-wrapper .header { text-align: center; border-bottom: 3px solid #1e293b; padding-bottom: 15px; margin-bottom: 25px; }
+                .treasury-print-wrapper .header h1 { margin: 0; font-size: 26px; color: #0f172a; }
+                .treasury-print-wrapper .header h2 { margin: 5px 0; font-size: 18px; color: #475569; }
+                .treasury-print-wrapper .header .meta { display: flex; justify-content: space-between; margin-top: 15px; font-weight: 600; font-size: 14px; }
+                
+                .treasury-print-wrapper .summary-container { display: flex; gap: 20px; margin-bottom: 25px; }
+                .treasury-print-wrapper .summary-box { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
+                .treasury-print-wrapper .summary-box h3 { margin: 0; padding: 10px; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; font-size: 15px; text-align: center; }
+                .treasury-print-wrapper .summary-content { padding: 10px 15px; }
+                .treasury-print-wrapper .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px; }
+                .treasury-print-wrapper .summary-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+                
+                .treasury-print-wrapper table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+                .treasury-print-wrapper th, .treasury-print-wrapper td { border: 1px solid #cbd5e1; padding: 10px 8px; text-align: right; word-wrap: break-word; }
+                .treasury-print-wrapper th { background-color: #f8fafc; font-weight: 700; color: #0f172a; }
+                .treasury-print-wrapper th:nth-child(1) { width: 12%; }
+                .treasury-print-wrapper th:nth-child(2) { width: 14%; }
+                .treasury-print-wrapper th:nth-child(3) { width: 12%; }
+                .treasury-print-wrapper th:nth-child(4) { width: 20%; }
+                .treasury-print-wrapper th:nth-child(5) { width: 30%; }
+                .treasury-print-wrapper th:nth-child(6) { width: 12%; }
+                
+                .treasury-print-wrapper tr:nth-child(even) { background-color: #f8fafc; }
+                .treasury-print-wrapper .amount { font-weight: bold; }
+            </style>
+            <div class="treasury-print-wrapper">
                 <div class="header">
                     <h1>شركة المحبة لقطع الغيار</h1>
                     <h2>تقرير الحركة المالية والخزينة</h2>
@@ -709,25 +692,24 @@ window.Treasury = (function () {
                         }).join('')}
                     </tbody>
                 </table>
-              </div>
-            </body>
-            </html>
+            </div>
         `;
 
-        const win = window.open('', '_blank', 'width=900,height=700');
-        if (!win) {
-            alert('يرجى السماح بالنوافذ المنبثقة (Popups) للطباعة.');
-            return;
+        const printArea = document.getElementById('treasuryPrintArea');
+        if (printArea) {
+            printArea.innerHTML = printHtml;
+            document.body.classList.add('printing-treasury');
+            
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.body.classList.remove('printing-treasury');
+                    printArea.innerHTML = '';
+                }, 1000);
+            }, 300);
+        } else {
+            alert('خطأ: لم يتم العثور على منطقة الطباعة');
         }
-        win.document.open();
-        win.document.write(printHtml);
-        win.document.close();
-
-        setTimeout(() => {
-            win.focus();
-            win.print();
-            setTimeout(() => { win.close(); }, 500);
-        }, 500);
     }
 
     function editTx(id) {
