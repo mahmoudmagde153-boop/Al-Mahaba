@@ -39,7 +39,7 @@ window.Suppliers = (function () {
         txs.forEach(tx => {
             if (tx.type === 'purchase') {
                 balances[tx.supplierId] += parseFloat(tx.amount || 0);
-            } else if (tx.type === 'payment' || tx.type === 'return') {
+            } else if (tx.type === 'payment' || tx.type === 'return' || tx.type === 'sales_to_supplier') {
                 balances[tx.supplierId] -= parseFloat(tx.amount || 0);
             }
         });
@@ -192,14 +192,15 @@ window.Suppliers = (function () {
         let runningBalance = parseFloat(sup.initialBalance || 0);
         const processedTxs = allTxs.map(tx => {
             if (tx.type === 'purchase') runningBalance += parseFloat(tx.amount || 0);
-            else if (tx.type === 'payment' || tx.type === 'return') runningBalance -= parseFloat(tx.amount || 0);
+            else if (tx.type === 'payment' || tx.type === 'return' || tx.type === 'sales_to_supplier') runningBalance -= parseFloat(tx.amount || 0);
             return { ...tx, runningBalance };
         });
 
         const typeLabels = {
             purchase: '<span class="badge" style="background:#ef4444">فاتورة مشتريات (+)</span>',
             payment: '<span class="badge" style="background:#10b981">دفعة مسددة (-)</span>',
-            return: '<span class="badge" style="background:#f59e0b">مرتجع بضاعة (-)</span>'
+            return: '<span class="badge" style="background:#f59e0b">مرتجع بضاعة (-)</span>',
+            sales_to_supplier: '<span class="badge" style="background:#3b82f6">مبيعات للمورد (-)</span>'
         };
 
         const paymentMethods = {
@@ -242,11 +243,12 @@ window.Suppliers = (function () {
                         <h3><i class="fas fa-file-invoice-dollar"></i> تسجيل معاملة</h3>
                         <form id="supTxForm">
                             <div class="form-group">
-                                <label>نوع المعاملة</label>
+                                <label>نوع الحركة</label>
                                 <select id="txType" required>
                                     <option value="purchase">فاتورة مشتريات (حساب علينا)</option>
                                     <option value="payment">سداد دفعة (دفعنا للمورد)</option>
                                     <option value="return">مرتجع بضاعة (يقلل حسابنا)</option>
+                                    <option value="sales_to_supplier">مبيعات للمورد (يقلل حسابنا)</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -425,7 +427,7 @@ window.Suppliers = (function () {
                             ${processedTxs.map(tx => `
                                 <tr>
                                     <td>${tx.date}</td>
-                                    <td>${tx.type === 'purchase' ? 'مشتريات' : tx.type === 'payment' ? 'دفعة' : 'مرتجع'}</td>
+                                    <td>${tx.type === 'purchase' ? 'مشتريات' : tx.type === 'payment' ? 'دفعة' : tx.type === 'return' ? 'مرتجع' : 'مبيعات'}</td>
                                     <td class="amount">${window.formatCurrency(tx.amount)}</td>
                                     <td>${paymentMethods[tx.paymentMethod] || '-'}</td>
                                     <td class="amount" style="color: #0f172a">${window.formatCurrency(tx.runningBalance)}</td>

@@ -333,7 +333,9 @@ window.Treasury = (function () {
         const btnTreasuryReport = document.getElementById('btnTreasuryReport');
         if (btnTreasuryReport) {
             btnTreasuryReport.addEventListener('click', () => {
-                document.getElementById('treasuryReportModal').classList.remove('hidden');
+                const mod = document.getElementById('treasuryReportModal');
+                mod.classList.remove('hidden');
+                mod.classList.add('show');
             });
         }
 
@@ -397,6 +399,8 @@ window.Treasury = (function () {
                 else if (tx.paymentMethod === 'cash') cash -= tx.amount || 0;
             } else if (tx.type === 'purchase') {
                 purchases += tx.amount || 0;
+            } else if (tx.type === 'sales_to_supplier') {
+                sales += tx.amount || 0;
             }
         });
 
@@ -820,7 +824,9 @@ window.Treasury = (function () {
         
         const repBtn = document.getElementById('reportModalClose');
         if (repBtn) repBtn.addEventListener('click', () => {
-            document.getElementById('treasuryReportModal').classList.add('hidden');
+            const mod = document.getElementById('treasuryReportModal');
+            mod.classList.add('hidden');
+            mod.classList.remove('show');
         });
         
         const repForm = document.getElementById('treasuryReportForm');
@@ -828,7 +834,9 @@ window.Treasury = (function () {
             e.preventDefault();
             const from = document.getElementById('repFromDate').value;
             const to = document.getElementById('repToDate').value;
-            document.getElementById('treasuryReportModal').classList.add('hidden');
+            const mod = document.getElementById('treasuryReportModal');
+            mod.classList.add('hidden');
+            mod.classList.remove('show');
             generateAndPrintReport(from, to);
         });
     });
