@@ -83,7 +83,7 @@ class DB {
         });
 
         if (linkChanged) {
-            this._setLocal('supplier_txs', txs);
+            this.set('supplier_txs', txs);
         }
 
         let treasuryTxs = this.get('treasury_txs') || [];
@@ -103,7 +103,7 @@ class DB {
         });
 
         if (treasuryChanged) {
-            this._setLocal('treasury_txs', treasuryTxs);
+            this.set('treasury_txs', treasuryTxs);
         }
 
         if (changed || linkChanged || treasuryChanged) {
@@ -188,10 +188,10 @@ class DB {
             this._initDefaultSettings();
             this._initDefaultAttendance();
             this._initDefaultSalaryDetails();
-            this.set('suppliers', []);
-            this.set('supplier_txs', []);
-            this.set('treasury_txs', []);
-            this.set('users', [{
+            this._setLocal('suppliers', []);
+            this._setLocal('supplier_txs', []);
+            this._setLocal('treasury_txs', []);
+            this._setLocal('users', [{
                 id: 1,
                 username: 'admin',
                 password: '123', // Default simple password
@@ -199,8 +199,8 @@ class DB {
                 role: 'admin',
                 permissions: ['*']
             }]);
-            this.set('initialized', true);
-            this.set('version', this.VERSION);
+            this._setLocal('initialized', true);
+            this._setLocal('version', this.VERSION);
             console.log('✅ تم تهيئة قاعدة البيانات بنجاح');
         } else {
             console.log('📂 قاعدة البيانات موجودة بالفعل');
@@ -394,7 +394,9 @@ class DB {
      */
     set(key, value) {
         if(key !== 'last_updated') {
-            this._setLocal('last_updated', Date.now());
+            const oldTime = this.get('last_updated') || 0;
+            const newTime = Math.max(Date.now(), oldTime + 1);
+            this._setLocal('last_updated', newTime);
         }
         this._setLocal(key, value);
         if (key !== 'initialized' && key !== 'last_updated') {
