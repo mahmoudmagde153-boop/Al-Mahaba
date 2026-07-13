@@ -447,7 +447,7 @@ window.Treasury = (function () {
         
         supTxs.forEach(t => {
             if (t.historical) return; // تجاهل الحركات التاريخية
-            const supName = suppliers.find(s => s.id === t.supplierId)?.name || 'غير معروف';
+            const supName = suppliers.find(s => s.id == t.supplierId)?.name || 'غير معروف';
             if (t.type === 'purchase') {
                 allTxs.push({
                     ...t,
@@ -551,7 +551,7 @@ window.Treasury = (function () {
         trTxs.forEach(t => allTxs.push({...t, sortDate: new Date(t.date).getTime()}));
         supTxs.forEach(t => {
             if (t.historical) return; // تجاهل الحركات التاريخية
-            const supName = suppliers.find(s => s.id === t.supplierId)?.name || 'غير معروف';
+            const supName = suppliers.find(s => s.id == t.supplierId)?.name || 'غير معروف';
             if (t.type === 'purchase') {
                 allTxs.push({...t, sortDate: new Date(t.date).getTime(), type_override: 'مشتريات', notes: `مورد: ${supName} ${t.notes ? ' - '+t.notes : ''}`});
             } else if (t.type === 'payment') {
