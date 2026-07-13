@@ -3,24 +3,18 @@
  *  لوحة المعلومات - Dashboard Module
  *  شركة المحبة لقطع الغيار
  * ============================================================
- *  يعرض إحصائيات عامة: إجمالي المرتبات، عدد الموظفين،
- *  نسبة الحضور، إجمالي الخصومات، مع أشرطة حضور ونشاط حديث.
- * ============================================================
  */
 
 window.Dashboard = (function () {
   'use strict';
 
-  /* ───── حالة الصفحة ───── */
   let selectedMonth = '';
 
-  /* ───── نقطة الدخول ───── */
   function init() {
     selectedMonth = window.getCurrentMonth();
     render();
   }
 
-  /* ───── بناء الصفحة الكاملة ───── */
   function render() {
     const container = document.getElementById('page-dashboard');
     if (!container) return;
@@ -30,74 +24,66 @@ window.Dashboard = (function () {
     populateData();
   }
 
-  /* ───── هيكل HTML ───── */
   function buildHTML() {
     return `
       <div class="dashboard-page">
         <!-- عنوان الصفحة مع محدد الشهر -->
-        <div class="page-header">
-          <h2><i class="fas fa-chart-line"></i> لوحة المعلومات</h2>
+        <div class="page-header" style="margin-bottom: 30px;">
+          <h2><i class="fas fa-chart-pie"></i> لوحة التحكم المالية</h2>
           <div class="month-selector">
             <label for="dash-month">الشهر:</label>
-            <input type="month" id="dash-month" value="${selectedMonth}" />
+            <input type="month" id="dash-month" value="${selectedMonth}" style="padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);" />
           </div>
         </div>
 
-        <!-- بطاقات الإحصائيات الأربعة -->
-        <div class="stats-grid" id="stats-grid">
-          ${statCard('total-salaries', 'fas fa-coins', 'إجمالي المرتبات', '0 ج.م', 'accent-gold')}
-          ${statCard('total-employees', 'fas fa-users', 'عدد الموظفين', '0', 'accent-blue')}
-          ${statCard('attendance-rate', 'fas fa-clipboard-check', 'نسبة الحضور', '0%', 'accent-green')}
-          ${statCard('total-deductions', 'fas fa-hand-holding-usd', 'إجمالي الخصومات', '0 ج.م', 'accent-red')}
+        <!-- بطاقات الإحصائيات -->
+        <div class="stats-grid" id="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+          ${statCard('dash-sales', 'fas fa-arrow-up', 'إجمالي المبيعات', '0 ج.م', 'accent-green')}
+          ${statCard('dash-purchases', 'fas fa-shopping-cart', 'المشتريات', '0 ج.م', 'accent-red')}
+          ${statCard('dash-expenses', 'fas fa-wallet', 'المصروفات', '0 ج.م', 'accent-orange')}
+          ${statCard('dash-salaries', 'fas fa-users', 'المرتبات المستحقة', '0 ج.م', 'accent-blue')}
+          ${statCard('dash-returns', 'fas fa-exchange-alt', 'المرتجعات', '0 ج.م', 'accent-warning')}
         </div>
 
-        <!-- أفضل وأسوأ حضور -->
-        <div class="highlights-row" id="highlights-row">
-          <div class="highlight-card best glass-card">
-            <div class="highlight-icon"><i class="fas fa-trophy"></i></div>
-            <div class="highlight-body">
-              <span class="highlight-label">أفضل حضور</span>
-              <span class="highlight-value" id="best-employee">—</span>
-            </div>
+        <!-- مؤشر الصافي المالي -->
+        <div class="glass-card" style="padding: 30px; border-radius: 15px; margin-bottom: 30px; text-align: center; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(99, 102, 241, 0.2);">
+          <h3 style="margin-bottom: 15px; color: var(--text-color); font-size: 1.4rem;"><i class="fas fa-balance-scale"></i> صافي الدخل التقديري للشهر</h3>
+          <h1 id="dash-net-profit" style="font-size: 3rem; margin-bottom: 20px; text-shadow: 0 2px 10px rgba(0,0,0,0.1);">0 ج.م</h1>
+          
+          <!-- مؤشر بصري (Visual Bar) -->
+          <div style="width: 100%; height: 12px; background: var(--bg-color); border-radius: 10px; overflow: hidden; display: flex; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);">
+            <div id="bar-income" style="height: 100%; background: var(--success); width: 50%; transition: width 1s ease;"></div>
+            <div id="bar-outflow" style="height: 100%; background: var(--danger); width: 50%; transition: width 1s ease;"></div>
           </div>
-          <div class="highlight-card worst glass-card">
-            <div class="highlight-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="highlight-body">
-              <span class="highlight-label">أكثر غياباً</span>
-              <span class="highlight-value" id="worst-employee">—</span>
-            </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.9rem; color: var(--text-muted); font-weight: bold;">
+            <span><i class="fas fa-circle" style="color: var(--success); font-size: 0.6rem; margin-left: 5px;"></i> الدخل (مبيعات)</span>
+            <span>الخارج (مشتريات، مصروفات، الخ) <i class="fas fa-circle" style="color: var(--danger); font-size: 0.6rem; margin-right: 5px;"></i></span>
           </div>
         </div>
 
-        <!-- أشرطة الحضور لكل موظف -->
-        <div class="glass-card chart-section">
-          <h3><i class="fas fa-chart-bar"></i> نسبة حضور الموظفين</h3>
-          <div class="attendance-bars" id="attendance-bars"></div>
-        </div>
-
-        <!-- النشاط الأخير -->
-        <div class="glass-card activity-section">
-          <h3><i class="fas fa-history"></i> النشاط الأخير</h3>
-          <ul class="activity-list" id="activity-list"></ul>
-        </div>
       </div>
     `;
   }
 
-  /** بطاقة إحصاء واحدة */
   function statCard(id, icon, label, value, accent) {
+    let colorHex = '#6366f1';
+    if(accent === 'accent-green') colorHex = '#10b981';
+    if(accent === 'accent-red') colorHex = '#ef4444';
+    if(accent === 'accent-warning') colorHex = '#f59e0b';
+    if(accent === 'accent-orange') colorHex = '#fd7e14';
+    if(accent === 'accent-blue') colorHex = '#3b82f6';
+
     return `
-      <div class="stat-card glass-card ${accent}" id="${id}">
-        <div class="stat-icon"><i class="${icon}"></i></div>
+      <div class="stat-card glass-card" id="${id}" style="padding: 25px 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-bottom: 4px solid ${colorHex}; transition: transform 0.3s ease; cursor: default;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div class="stat-icon" style="margin-bottom: 15px; font-size: 2.2rem; color: ${colorHex};"><i class="${icon}"></i></div>
         <div class="stat-body">
-          <span class="stat-value">${value}</span>
-          <span class="stat-label">${label}</span>
+          <span class="stat-value" style="display: block; font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; color: var(--text-color);">${value}</span>
+          <span class="stat-label" style="color: var(--text-muted); font-size: 1rem; font-weight: 600;">${label}</span>
         </div>
       </div>
     `;
   }
 
-  /* ───── ربط الأحداث ───── */
   function attachEvents() {
     const monthInput = document.getElementById('dash-month');
     if (monthInput) {
@@ -108,7 +94,14 @@ window.Dashboard = (function () {
     }
   }
 
-  /* ───── حساب وعرض البيانات ───── */
+  function getWeeklyOffDay(settings) {
+    const dayMap = {
+      'الأحد': 0, 'الإثنين': 1, 'الثلاثاء': 2, 'الأربعاء': 3,
+      'الخميس': 4, 'الجمعة': 5, 'السبت': 6
+    };
+    return dayMap[settings.weeklyOff] ?? 0;
+  }
+
   function populateData() {
     const employees = window.DB.getEmployees().filter(e => e.active !== false);
     const attendance = window.DB.getAttendance(selectedMonth) || {};
@@ -118,63 +111,34 @@ window.Dashboard = (function () {
     const [year, month] = selectedMonth.split('-').map(Number);
     const daysInMonth = window.getDaysInMonth(year, month);
 
-    /* ──── حساب إحصائيات كل موظف ──── */
+    /* ──── 1. المرتبات ──── */
     let totalSalaries = 0;
-    let totalDeductions = 0;
-    const empStats = []; // { name, presentDays, absentDays, totalDays, percentage }
 
     employees.forEach(emp => {
       const empAtt = attendance[emp.id] || {};
       const empSalary = salaryDetails[emp.id] || {};
 
-      let presentDays = 0;
       let absentDays = 0;
-      let leaveDays = 0;
       let lateHours = 0;
-      let workingDays = 0;
 
       for (let d = 1; d <= daysInMonth; d++) {
-        const dateStr = `${selectedMonth}-${String(d).padStart(2, '0')}`;
         const dayDate = new Date(year, month - 1, d);
-        const dayOfWeek = dayDate.getDay(); // 0=أحد
-
-        // تحديد يوم الإجازة الأسبوعية
+        const dayOfWeek = dayDate.getDay();
         const weeklyOff = getWeeklyOffDay(settings);
-        if (dayOfWeek === weeklyOff) continue; // يوم الراحة الأسبوعية
+        
+        if (dayOfWeek === weeklyOff) continue;
 
         const status = empAtt[d] || empAtt[String(d)];
-        if (!status) continue; // لم يُسجّل بعد
-
-        workingDays++;
+        if (!status) continue;
 
         switch (status) {
-          case 'present':
-          case 'errand':
-            presentDays++;
-            break;
-          case 'half_day':
-            presentDays += 0.5;
-            absentDays += 0.5;
-            break;
-          case 'absent':
-            absentDays++;
-            break;
-          case 'leave':
-            leaveDays++;
-            break;
-          case 'official_holiday':
-            // إجازة رسمية — لا تُحتسب غياب ولا تُخصم
-            presentDays++;
-            break;
+          case 'half_day': absentDays += 0.5; break;
+          case 'absent': absentDays++; break;
           default:
-            if (status.startsWith('late_')) {
-              presentDays++;
-              lateHours += parseInt(status.split('_')[1]) || 0;
-            }
+            if (status.startsWith('late_')) lateHours += parseInt(status.split('_')[1]) || 0;
         }
       }
 
-      // الحسابات المالية
       const dailyRate = emp.baseSalary / 30;
       const hourlyRate = dailyRate / (settings.workHours || 10);
       const absenceDeduction = dailyRate * absentDays;
@@ -186,49 +150,74 @@ window.Dashboard = (function () {
       const overtimeAllowance = overtimeDays * (settings.overtimeRate || 100);
 
       const netSalary = emp.baseSalary - absenceDeduction - lateDeduction - advances - leaveDeduction + bonus + overtimeAllowance;
-      const deductions = absenceDeduction + lateDeduction + advances + leaveDeduction;
-
-      totalSalaries += netSalary;
-      totalDeductions += deductions;
-
-      const percentage = workingDays > 0 ? Math.round((presentDays / workingDays) * 100) : 0;
-      empStats.push({
-        name: emp.name,
-        presentDays,
-        absentDays,
-        workingDays,
-        percentage
-      });
+      if (netSalary > 0) totalSalaries += netSalary;
     });
 
-    // نسبة الحضور الإجمالية
-    const totalWorking = empStats.reduce((s, e) => s + e.workingDays, 0);
-    const totalPresent = empStats.reduce((s, e) => s + e.presentDays, 0);
-    const overallRate = totalWorking > 0 ? Math.round((totalPresent / totalWorking) * 100) : 0;
+    /* ──── 2. المبيعات، المشتريات، المصروفات، والمرتجعات ──── */
+    let totalSales = 0;
+    let totalPurchases = 0;
+    let totalReturns = 0;
+    let totalExpenses = 0;
 
-    /* ──── تحديث البطاقات ──── */
-    updateStatCard('total-salaries', window.formatCurrency(totalSalaries));
-    updateStatCard('total-employees', employees.length);
-    updateStatCard('attendance-rate', overallRate + '%');
-    updateStatCard('total-deductions', window.formatCurrency(totalDeductions));
+    const trTxs = window.DB.getTreasuryTxs();
+    const supTxs = window.DB.getSupplierTxs();
 
-    /* ──── أفضل / أسوأ حضور ──── */
-    if (empStats.length > 0) {
-      const sorted = [...empStats].sort((a, b) => b.percentage - a.percentage);
-      const best = sorted[0];
-      const worst = sorted[sorted.length - 1];
-      setText('best-employee', `${best.name} (${best.percentage}%)`);
-      setText('worst-employee', `${worst.name} (${worst.percentage}%)`);
+    trTxs.forEach(tx => {
+      if (tx.date && tx.date.startsWith(selectedMonth)) {
+        if (tx.type === 'sales') totalSales += parseFloat(tx.amount || 0);
+        else if (tx.type === 'sales_return') totalReturns += parseFloat(tx.amount || 0);
+        else if (tx.type === 'expense') totalExpenses += parseFloat(tx.amount || 0);
+      }
+    });
+
+    supTxs.forEach(tx => {
+      if (tx.historical) return;
+      if (tx.date && tx.date.startsWith(selectedMonth)) {
+        if (tx.type === 'purchase') totalPurchases += parseFloat(tx.amount || 0);
+        else if (tx.type === 'sales_to_supplier') totalSales += parseFloat(tx.amount || 0);
+        else if (tx.type === 'return') totalReturns += parseFloat(tx.amount || 0);
+      }
+    });
+
+    // الصافي = المبيعات - (المشتريات + المصروفات + المرتبات + المرتجعات)
+    const totalOutflow = totalPurchases + totalExpenses + totalSalaries + totalReturns;
+    const netProfit = totalSales - totalOutflow;
+
+    /* ──── تحديث الواجهة ──── */
+    updateStatCard('dash-sales', window.formatCurrency(totalSales));
+    updateStatCard('dash-purchases', window.formatCurrency(totalPurchases));
+    updateStatCard('dash-returns', window.formatCurrency(totalReturns));
+    updateStatCard('dash-expenses', window.formatCurrency(totalExpenses));
+    updateStatCard('dash-salaries', window.formatCurrency(totalSalaries));
+
+    // تحديث الصافي
+    const netEl = document.getElementById('dash-net-profit');
+    if (netEl) {
+      netEl.textContent = window.formatCurrency(netProfit);
+      netEl.style.color = netProfit >= 0 ? 'var(--success)' : 'var(--danger)';
     }
 
-    /* ──── أشرطة الحضور ──── */
-    renderAttendanceBars(empStats);
+    // تحديث المؤشر البصري (البار)
+    const barIncome = document.getElementById('bar-income');
+    const barOutflow = document.getElementById('bar-outflow');
+    if (barIncome && barOutflow) {
+      const totalVolume = totalSales + totalOutflow;
+      let incomePercent = 50;
+      let outflowPercent = 50;
 
-    /* ──── النشاط الأخير ──── */
-    renderRecentActivity(employees, attendance);
+      if (totalVolume > 0) {
+        incomePercent = (totalSales / totalVolume) * 100;
+        outflowPercent = (totalOutflow / totalVolume) * 100;
+      } else {
+        incomePercent = 0;
+        outflowPercent = 0;
+      }
+
+      barIncome.style.width = incomePercent + '%';
+      barOutflow.style.width = outflowPercent + '%';
+    }
   }
 
-  /** تحديث قيمة بطاقة إحصاء */
   function updateStatCard(id, value) {
     const card = document.getElementById(id);
     if (!card) return;
@@ -236,97 +225,5 @@ window.Dashboard = (function () {
     if (valEl) valEl.textContent = value;
   }
 
-  /** تعيين نص عنصر */
-  function setText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-  }
-
-  /** تحديد رقم يوم الإجازة الأسبوعية (0=أحد .. 6=سبت) */
-  function getWeeklyOffDay(settings) {
-    const dayMap = {
-      'الأحد': 0, 'الإثنين': 1, 'الثلاثاء': 2, 'الأربعاء': 3,
-      'الخميس': 4, 'الجمعة': 5, 'السبت': 6
-    };
-    return dayMap[settings.weeklyOff] ?? 0; // الافتراضي: الأحد
-  }
-
-  /* ───── رسم أشرطة الحضور ───── */
-  function renderAttendanceBars(empStats) {
-    const container = document.getElementById('attendance-bars');
-    if (!container) return;
-
-    if (empStats.length === 0) {
-      container.innerHTML = '<p class="empty-state">لا توجد بيانات حضور لهذا الشهر</p>';
-      return;
-    }
-
-    container.innerHTML = empStats.map(emp => {
-      const color = emp.percentage >= 90 ? 'var(--success)'
-        : emp.percentage >= 70 ? 'var(--warning)'
-          : 'var(--danger)';
-      return `
-        <div class="bar-row">
-          <span class="bar-label">${emp.name}</span>
-          <div class="bar-track">
-            <div class="bar-fill" style="width: ${emp.percentage}%; background: ${color};">
-              <span class="bar-percent">${emp.percentage}%</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  /* ───── النشاط الأخير ───── */
-  function renderRecentActivity(employees, attendance) {
-    const list = document.getElementById('activity-list');
-    if (!list) return;
-
-    const activities = [];
-    const typeLabels = {
-      present: '✅ حضور', absent: '❌ غياب', leave: '🏖️ إجازة',
-      official_holiday: '🎉 رسمية', errand: '📋 مأمورية',
-      half_day: '🕐 نص يوم'
-    };
-    for (let i = 1; i <= 5; i++) typeLabels[`late_${i}`] = `⏰ تأخير ${i} ساعات`;
-
-    const empMap = {};
-    employees.forEach(e => empMap[e.id] = e.name);
-
-    // جمع آخر 20 نشاط (نبدأ من أحدث يوم)
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const daysInMonth = window.getDaysInMonth(year, month);
-
-    for (let d = daysInMonth; d >= 1; d--) {
-      for (const empId in attendance) {
-        const status = attendance[empId]?.[d] || attendance[empId]?.[String(d)];
-        if (!status) continue;
-        activities.push({
-          day: d,
-          empName: empMap[empId] || empId,
-          status: typeLabels[status] || status
-        });
-        if (activities.length >= 20) break;
-      }
-      if (activities.length >= 20) break;
-    }
-
-    if (activities.length === 0) {
-      list.innerHTML = '<li class="empty-state">لا يوجد نشاط مسجّل لهذا الشهر</li>';
-      return;
-    }
-
-    list.innerHTML = activities.map(a => `
-      <li class="activity-item">
-        <span class="activity-date">${a.day} / ${month}</span>
-        <span class="activity-name">${a.empName}</span>
-        <span class="activity-status">${a.status}</span>
-      </li>
-    `).join('');
-  }
-
-  /* ───── الواجهة العامة ───── */
   return { init };
 })();
-

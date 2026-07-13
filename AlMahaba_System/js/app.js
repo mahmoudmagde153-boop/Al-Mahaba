@@ -446,182 +446,137 @@ function renderDashboard() {
     // ملء قائمة الأشهر
     populateMonthSelect(document.getElementById('dashboardMonthSelect'), month);
 
-    // ── بطاقات الإحصائيات ──
-    const totalEmployees = employees.length;
+    // ── الحسابات المالية (الشهرية) ──
     let totalSalaries = 0;
-    let totalPresent = 0;
-    let totalAbsent = 0;
-
     employees.forEach(emp => {
         const salary = db.calculateSalary(emp.id, month);
-        if (salary) {
+        if (salary && salary.netSalary > 0) {
             totalSalaries += salary.netSalary;
-            totalPresent += salary.totalWorked;
-            totalAbsent += salary.absentDays;
         }
     });
 
+    let totalSales = 0;
+    let totalPurchases = 0;
+    let totalReturns = 0;
+    let totalExpenses = 0;
+
+    const trTxs = db.getTreasuryTxs ? db.getTreasuryTxs() : (JSON.parse(localStorage.getItem('almahaba_treasury')) || []);
+    const supTxs = db.getSupplierTxs ? db.getSupplierTxs() : (JSON.parse(localStorage.getItem('almahaba_suppliers_txs')) || []);
+
+    // فلترة حركات الخزنة للشهر المحدد
+    trTxs.forEach(tx => {
+      if (tx.date && tx.date.startsWith(month)) {
+        if (tx.type === 'sales') totalSales += parseFloat(tx.amount || 0);
+        else if (tx.type === 'sales_return') totalReturns += parseFloat(tx.amount || 0);
+        else if (tx.type === 'expense') totalExpenses += parseFloat(tx.amount || 0);
+      }
+    });
+
+    // فلترة حركات الموردين للشهر المحدد
+    supTxs.forEach(tx => {
+      if (tx.historical) return; // تجاهل الرصيد الافتتاحي
+      if (tx.date && tx.date.startsWith(month)) {
+        if (tx.type === 'purchase') totalPurchases += parseFloat(tx.amount || 0);
+        else if (tx.type === 'sales_to_supplier') totalSales += parseFloat(tx.amount || 0);
+        else if (tx.type === 'return') totalReturns += parseFloat(tx.amount || 0);
+      }
+    });
+
+    const totalOutflow = totalPurchases + totalExpenses + totalSalaries + totalReturns;
+    const netProfit = totalSales - totalOutflow;
+
+    // ── الحسابات الفعلية (الرصيد الكلي والديون) ──
+    let globalCash = 0;
+    trTxs.forEach(tx => {
+      if (tx.type === 'sales' || tx.type === 'cash_in') {
+        globalCash += parseFloat(tx.amount || 0);
+      } else if (tx.type === 'sales_return' || tx.type === 'expense' || tx.type === 'cash_out') {
+        globalCash -= parseFloat(tx.amount || 0);
+      }
+    });
+
+    supTxs.forEach(tx => {
+      if (!tx.historical && tx.type === 'payment') {
+        globalCash -= parseFloat(tx.amount || 0);
+      }
+    });
+
+    let globalDebts = 0;
+    const suppliers = db.getSuppliers ? db.getSuppliers() : (JSON.parse(localStorage.getItem('almahaba_suppliers')) || []);
+    suppliers.forEach(s => {
+      let balance = parseFloat(s.initialBalance || 0);
+      supTxs.filter(tx => tx.supplierId == s.id && !tx.historical).forEach(tx => {
+          if (tx.type === 'purchase') balance += parseFloat(tx.amount || 0);
+          else balance -= parseFloat(tx.amount || 0); // الدفعات والمرتجعات والمبيعات للمورد
+      });
+      if (balance > 0) {
+        globalDebts += balance;
+      }
+    });
+
+    const globalNet = globalCash - globalDebts;
+
+    const gCashEl = document.getElementById('global-cash');
+    const gDebtsEl = document.getElementById('global-debts');
+    const gNetEl = document.getElementById('global-net');
+
+    if (gCashEl) gCashEl.textContent = formatCurrency(globalCash);
+    if (gDebtsEl) gDebtsEl.textContent = formatCurrency(globalDebts);
+    if (gNetEl) {
+      gNetEl.textContent = formatCurrency(globalNet);
+      gNetEl.style.color = globalNet >= 0 ? 'var(--info)' : 'var(--danger)';
+    }
+
     const statsHTML = `
-        <div class="stat-card primary" style="animation-delay: 0.05s">
-            <div class="stat-icon">👥</div>
-            <div class="stat-info">
-                <h4>عدد الموظفين</h4>
-                <div class="stat-value">${totalEmployees}</div>
-            </div>
-        </div>
-        <div class="stat-card success" style="animation-delay: 0.1s">
-            <div class="stat-icon">💰</div>
-            <div class="stat-info">
-                <h4>إجمالي المرتبات</h4>
-                <div class="stat-value">${formatCurrency(totalSalaries)}</div>
-            </div>
-        </div>
-        <div class="stat-card info" style="animation-delay: 0.15s">
-            <div class="stat-icon">✅</div>
-            <div class="stat-info">
-                <h4>إجمالي أيام الحضور</h4>
-                <div class="stat-value">${formatNumber(totalPresent)}</div>
-            </div>
-        </div>
-        <div class="stat-card danger" style="animation-delay: 0.2s">
-            <div class="stat-icon">❌</div>
-            <div class="stat-info">
-                <h4>إجمالي أيام الغياب</h4>
-                <div class="stat-value">${formatNumber(totalAbsent)}</div>
-            </div>
-        </div>
+        ${statCard('إجمالي المبيعات', formatCurrency(totalSales), 'fas fa-arrow-up', '#10b981')}
+        ${statCard('المشتريات', formatCurrency(totalPurchases), 'fas fa-shopping-cart', '#ef4444')}
+        ${statCard('المصروفات', formatCurrency(totalExpenses), 'fas fa-wallet', '#fd7e14')}
+        ${statCard('المرتبات المستحقة', formatCurrency(totalSalaries), 'fas fa-users', '#3b82f6')}
+        ${statCard('المرتجعات', formatCurrency(totalReturns), 'fas fa-exchange-alt', '#f59e0b')}
     `;
 
     document.getElementById('dashboardStats').innerHTML = statsHTML;
 
-    // ── رسم بياني للحضور ──
-    renderAttendanceChart(month, employees);
-
-    // ── رسم بياني للمرتبات ──
-    renderSalaryChart(month, employees);
-
-    // ── آخر النشاطات ──
-    renderRecentActivity(month, employees);
-}
-
-/**
- * رسم بياني للحضور
- */
-function renderAttendanceChart(month, employees) {
-    const container = document.getElementById('attendanceChart');
-    if (!container) return;
-
-    let maxDays = 0;
-    const data = employees.map(emp => {
-        const summary = db.getAttendanceSummary(emp.id, month);
-        const total = summary.present + summary.absent + summary.leave + summary.lateDays + summary.halfDay;
-        if (total > maxDays) maxDays = total;
-        return { name: emp.name, ...summary };
-    });
-
-    if (maxDays === 0) maxDays = 30;
-    const maxHeight = 180; // بيكسل
-
-    let html = '';
-    data.forEach(d => {
-        const presentH = (d.present / maxDays) * maxHeight;
-        const absentH = (d.absent / maxDays) * maxHeight;
-        const leaveH = (d.leave / maxDays) * maxHeight;
-        const lateH = (d.lateDays / maxDays) * maxHeight;
-
-        html += `
-            <div class="chart-bar-group">
-                <div class="chart-value">${d.present}</div>
-                <div class="chart-bar present" style="height: ${Math.max(presentH, 4)}px" title="حضور: ${d.present}"></div>
-                <div class="chart-bar absent" style="height: ${Math.max(absentH, d.absent > 0 ? 4 : 0)}px" title="غياب: ${d.absent}"></div>
-                <div class="chart-bar leave" style="height: ${Math.max(leaveH, d.leave > 0 ? 4 : 0)}px" title="إجازات: ${d.leave}"></div>
-                <div class="chart-bar late" style="height: ${Math.max(lateH, d.lateDays > 0 ? 4 : 0)}px" title="تأخير: ${d.lateDays}"></div>
-                <div class="chart-label">${d.name}</div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
-}
-
-/**
- * رسم بياني للمرتبات
- */
-function renderSalaryChart(month, employees) {
-    const container = document.getElementById('salaryChart');
-    if (!container) return;
-
-    let maxSalary = 0;
-    const data = employees.map(emp => {
-        const salary = db.calculateSalary(emp.id, month);
-        const net = salary ? salary.netSalary : 0;
-        if (net > maxSalary) maxSalary = net;
-        return { name: emp.name, net, base: emp.baseSalary };
-    });
-
-    if (maxSalary === 0) maxSalary = 1;
-
-    let html = '<div class="salary-bars">';
-    data.forEach(d => {
-        const percentage = Math.max((d.net / maxSalary) * 100, 5);
-        html += `
-            <div class="salary-bar-item">
-                <span class="salary-bar-name">${d.name}</span>
-                <div class="salary-bar-track">
-                    <div class="salary-bar-fill" style="width: ${percentage}%">
-                        <span>${formatCurrency(d.net)}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    html += '</div>';
-
-    container.innerHTML = html;
-}
-
-/**
- * عرض آخر النشاطات
- */
-function renderRecentActivity(month, employees) {
-    const container = document.getElementById('recentActivity');
-    if (!container) return;
-
-    const attendance = db.getAttendance(month);
-    const activities = [];
-
-    employees.forEach(emp => {
-        const empAtt = attendance[emp.id] || {};
-        Object.entries(empAtt).forEach(([day, type]) => {
-            activities.push({
-                name: emp.name,
-                day: parseInt(day),
-                type,
-                icon: ATTENDANCE_ICONS[type] || '📝',
-                typeName: ATTENDANCE_NAMES[type] || type
-            });
-        });
-    });
-
-    // ترتيب حسب اليوم تنازلياً وأخذ آخر 10
-    activities.sort((a, b) => b.day - a.day);
-    const recent = activities.slice(0, 10);
-
-    if (recent.length === 0) {
-        container.innerHTML = '<p class="text-center text-muted" style="padding: 40px;">لا توجد نشاطات مسجلة لهذا الشهر</p>';
-        return;
+    // تحديث الصافي
+    const netEl = document.getElementById('dash-net-profit');
+    if (netEl) {
+      netEl.textContent = formatCurrency(netProfit);
+      netEl.style.color = netProfit >= 0 ? 'var(--success)' : 'var(--danger)';
     }
 
-    container.innerHTML = recent.map(a => `
-        <div class="activity-item">
-            <span class="activity-icon">${a.icon}</span>
-            <span class="activity-text">
-                <strong>${a.name}</strong> — ${a.typeName}
-            </span>
-            <span class="activity-time">يوم ${a.day} ${monthToArabic(month)}</span>
-        </div>
-    `).join('');
+    // تحديث المؤشر البصري (البار)
+    const barIncome = document.getElementById('bar-income');
+    const barOutflow = document.getElementById('bar-outflow');
+    if (barIncome && barOutflow) {
+      const totalVolume = totalSales + totalOutflow;
+      let incomePercent = 50;
+      let outflowPercent = 50;
+
+      if (totalVolume > 0) {
+        incomePercent = (totalSales / totalVolume) * 100;
+        outflowPercent = (totalOutflow / totalVolume) * 100;
+      } else {
+        incomePercent = 0;
+        outflowPercent = 0;
+      }
+
+      barIncome.style.width = incomePercent + '%';
+      barOutflow.style.width = outflowPercent + '%';
+    }
 }
+
+function statCard(label, value, icon, colorHex) {
+    return `
+      <div class="stat-card glass-card" style="padding: 25px 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-bottom: 4px solid ${colorHex}; transition: transform 0.3s ease; cursor: default; background: var(--card-bg);" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div class="stat-icon" style="margin-bottom: 15px; font-size: 2.2rem; color: ${colorHex};"><i class="${icon}"></i></div>
+        <div class="stat-body">
+          <span class="stat-value" style="display: block; font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; color: var(--text-color);">${value}</span>
+          <span class="stat-label" style="color: var(--text-muted); font-size: 1rem; font-weight: 600;">${label}</span>
+        </div>
+      </div>
+    `;
+}
+
 
 // حدث تغيير شهر لوحة التحكم
 document.getElementById('dashboardMonthSelect')?.addEventListener('change', () => {
