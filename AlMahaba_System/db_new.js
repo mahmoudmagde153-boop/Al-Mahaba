@@ -116,163 +116,75 @@ class DB {
         }
     }
 
+    async _syncToSupabase() {
+        if (!this.supabase) return;
+        try {
+            const fullData = {
+                users: this.get('users'),
+                settings: this.get('settings'),
+                employees: this.get('employees'),
+                treasury_txs: this.get('treasury_txs'),
+                suppliers: this.get('suppliers'),
+                supplier_txs: this.get('supplier_txs'),
+                attendance: this.get('attendance'),
+                salary_details: this.get('salary_details'),
+                archive: this.get('archive'),
+                last_updated: this.get('last_updated') || Date.now()
+            };
+            await this.supabase.from('attendance').upsert({ month_key: 'FULL_DB_BACKUP', data: fullData });
+        } catch(e) { console.error('Supabase Sync Error', e); }
+    }
+
     async _fetchFromSupabase() {
         if (!this.supabase) return;
         try {
-            console.log('☁️ Fetching data from Supabase KV...');
-            // Fetch all rows
-            let allRows = [];
-            let page = 0;
-            const pageSize = 1000;
-            while (true) {
-                const { data, error } = await this.supabase.from('attendance').select('*').range(page * pageSize, (page + 1) * pageSize - 1);
-                if (error) throw error;
-                if (!data || data.length === 0) break;
-                allRows = allRows.concat(data);
-                if (data.length < pageSize) break;
-                page++;
+            const { data, error } = await this.supabase.from('attendance').select('data').eq('month_key', 'FULL_DB_BACKUP').single();
+            if (error && error.code !== 'PGRST116') {
+                console.error('Fetch error:', error);
+                return;
             }
-
-            if (allRows.length === 0) return;
-
-            // Check if we need to migrate from FULL_DB_BACKUP
-            const legacyRow = allRows.find(r => r.month_key === 'FULL_DB_BACKUP');
-            if (legacyRow) {
-                console.log('🔄 Found Legacy FULL_DB_BACKUP. Migrating to KV...');
-                await this._migrateLegacyToKV(legacyRow.data);
-                return; // Migration will reload the page
-            }
-
-            // Reconstruct tables from KV rows
-            const reconstructed = {
-                users: [],
-                employees: [],
-                treasury_txs: [],
-                suppliers: [],
-                supplier_txs: [],
-                attendance: {},
-                salary_details: {},
-                archive: [],
-                settings: this.get('settings') || {}
-            };
-
-            for (const row of allRows) {
-                const key = row.month_key;
-                const data = row.data;
-
-                if (key.startsWith('users_')) reconstructed.users.push(data);
-                else if (key.startsWith('employees_')) reconstructed.employees.push(data);
-                else if (key.startsWith('treasury_txs_')) reconstructed.treasury_txs.push(data);
-                else if (key.startsWith('suppliers_')) reconstructed.suppliers.push(data);
-                else if (key.startsWith('supplier_txs_')) reconstructed.supplier_txs.push(data);
-                else if (key.startsWith('archive_')) reconstructed.archive.push(data);
-                else if (key.startsWith('settings_')) reconstructed.settings = data;
-                else if (key.startsWith('attendance_')) {
-                    const month = key.replace('attendance_', '');
-                    reconstructed.attendance[month] = data;
+            if (data && data.data && data.data.users) {
+                const cloudDb = data.data;
+                const localTimestamp = this.get('last_updated') || 0;
+                const cloudTimestamp = cloudDb.last_updated || 0;
+                
+                // التأكد من أن السحابة تحتوي على بيانات فعلية قبل الكتابة فوق اللوكل
+                const cloudHasData = cloudDb.users && cloudDb.users.length > 0;
+                const localHasData = this.get('users') && this.get('users').length > 0;
+                
+                if (cloudTimestamp > localTimestamp && cloudHasData) {
+                    console.log('☁️ السحابة أحدث، جاري التحديث...');
+                    for (let k in cloudDb) {
+                        this._setLocal(k, cloudDb[k]);
+                    }
+                    if (!sessionStorage.getItem('almahaba_just_fetched')) {
+                        sessionStorage.setItem('almahaba_just_fetched', '1');
+                        window.location.reload();
+                    }
+                } else if (localTimestamp > cloudTimestamp && localHasData) {
+                    this._syncToSupabase();
                 }
-                else if (key.startsWith('salary_details_')) {
-                    const month = key.replace('salary_details_', '');
-                    reconstructed.salary_details[month] = data;
+            } else if (!data) {
+                const localHasData = this.get('users') && this.get('users').length > 0;
+                if (localHasData) {
+                    this._syncToSupabase();
                 }
             }
-
-            // Check if we should update local storage
-            let shouldUpdate = false;
-            const lastSync = parseInt(this.get('last_kv_sync') || '0');
-            
-            // Find max created_at from allRows to detect if cloud has new data
-            let maxCloudTime = 0;
-            allRows.forEach(r => {
-                const rowTime = new Date(r.created_at).getTime();
-                if (rowTime > maxCloudTime) maxCloudTime = rowTime;
-            });
-
-            if (maxCloudTime > lastSync || !this.get('initialized')) {
-                shouldUpdate = true;
-            }
-
-            if (shouldUpdate) {
-                console.log('🔄 Updating local storage from cloud...');
-                for (let k in reconstructed) {
-                    this._setLocal(k, reconstructed[k]);
-                }
-                this._setLocal('last_kv_sync', maxCloudTime);
-                this._setLocal('initialized', true);
-
-                if (!sessionStorage.getItem('almahaba_just_fetched')) {
-                    sessionStorage.setItem('almahaba_just_fetched', '1');
-                    window.location.reload();
-                }
-            }
-
         } catch(e) { console.error('Fetch error', e); }
     }
 
-    async _migrateLegacyToKV(legacyData) {
-        try {
-            console.log('🚀 Starting Migration to KV format...');
-            // Upsert all users
-            if (legacyData.users) {
-                for (const u of legacyData.users) await this._upsertRow('users', u.id, u);
-            }
-            if (legacyData.employees) {
-                for (const e of legacyData.employees) await this._upsertRow('employees', e.id, e);
-            }
-            if (legacyData.suppliers) {
-                for (const s of legacyData.suppliers) await this._upsertRow('suppliers', s.id, s);
-            }
-            if (legacyData.supplier_txs) {
-                for (const tx of legacyData.supplier_txs) await this._upsertRow('supplier_txs', tx.id, tx);
-            }
-            if (legacyData.treasury_txs) {
-                for (const tx of legacyData.treasury_txs) await this._upsertRow('treasury_txs', tx.id, tx);
-            }
-            if (legacyData.archive) {
-                for (const a of legacyData.archive) await this._upsertRow('archive', a.month, a);
-            }
-            if (legacyData.settings) {
-                await this._upsertRow('settings', 'global', legacyData.settings);
-            }
-            if (legacyData.attendance) {
-                for (const month in legacyData.attendance) await this._upsertRow('attendance', month, legacyData.attendance[month]);
-            }
-            if (legacyData.salary_details) {
-                for (const month in legacyData.salary_details) await this._upsertRow('salary_details', month, legacyData.salary_details[month]);
-            }
-
-            // Finally, delete FULL_DB_BACKUP
-            await this.supabase.from('attendance').delete().eq('month_key', 'FULL_DB_BACKUP');
-            console.log('✅ Migration completed successfully');
-            
-            this._setLocal('last_kv_sync', Date.now());
-            sessionStorage.setItem('almahaba_just_fetched', '1');
-            window.location.reload();
-        } catch (e) {
-            console.error('Migration failed:', e);
-        }
-    }
-
-    async _upsertRow(table, id, data) {
+    async _syncAllToSupabase() {
         if (!this.supabase) return;
-        try {
-            const key = `${table}_${id}`;
-            await this.supabase.from('attendance').upsert({ month_key: key, data: data });
-            this._setLocal('last_kv_sync', Date.now());
-        } catch(e) { console.error(`Failed to upsert ${key}`, e); }
-    }
+        const localHasData = this.get('users') && this.get('users').length > 0;
+        if (!localHasData) return;
 
-    async _deleteRow(table, id) {
-        if (!this.supabase) return;
-        try {
-            const key = `${table}_${id}`;
-            await this.supabase.from('attendance').delete().eq('month_key', key);
-            this._setLocal('last_kv_sync', Date.now());
-        } catch(e) { console.error(`Failed to delete ${key}`, e); }
+        // if(window.showToast) window.showToast('🚀 جاري رفع داتا شركتك إلى السحابة كنسخة احتياطية...', 'info');
+        this._setLocal('last_updated', Date.now() + 1000);
+        await this._syncToSupabase();
+        // if(window.showToast) {
+        //     setTimeout(() => window.showToast('✅ تمت المزامنة بنجاح! السحابة الآن جاهزة.', 'success'), 2000);
+        // }
     }
-
-    async _syncToSupabase() { /* Obsolete */ }
-    async _syncAllToSupabase() { /* Obsolete */ }
 
     /* ═══════════════════════════════════════════════════════════════════════
        التهيئة الأولية
@@ -565,7 +477,6 @@ class DB {
             const index = employees.findIndex(emp => emp.id === employee.id);
             if (index !== -1) {
                 employees[index] = { ...employees[index], ...employee };
-                this._upsertRow('employees', employee.id, employees[index]);
             }
         } else {
             // إضافة موظف جديد
@@ -574,7 +485,6 @@ class DB {
             employee.active = true;
             employees.push(employee);
             this.set('nextEmployeeId', nextId + 1);
-            this._upsertRow('employees', employee.id, employee);
         }
 
         this.set('employees', employees);
@@ -591,7 +501,6 @@ class DB {
         if (index !== -1) {
             employees[index].active = false;
             this.set('employees', employees);
-            this._upsertRow('employees', id, employees[index]);
         }
     }
 
@@ -603,7 +512,6 @@ class DB {
         const employees = this.get('employees') || [];
         const filtered = employees.filter(emp => emp.id !== id);
         this.set('employees', filtered);
-        this._deleteRow('employees', id);
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
@@ -626,7 +534,6 @@ class DB {
      */
     saveAttendance(month, data) {
         this.set(`attendance_${month}`, data);
-        this._upsertRow('attendance', month, data);
     }
 
     /**
@@ -734,7 +641,6 @@ class DB {
      */
     saveSalaryDetails(month, data) {
         this.set(`salary_${month}`, data);
-        this._upsertRow('salary_details', month, data);
     }
 
     /**
@@ -833,7 +739,6 @@ class DB {
     saveSettings(settings) {
         const current = this.getSettings();
         this.set('settings', { ...current, ...settings });
-        this._upsertRow('settings', 'global', this.get('settings'));
         
         // التهيئة لـ IndexedDB للصور والمرفقات
         this.initIndexedDB().catch(e => console.error('Failed to init IndexedDB', e));
@@ -950,7 +855,6 @@ class DB {
             suppliers.push(supplier);
         }
         this.set('suppliers', suppliers);
-        this._upsertRow('suppliers', supplier.id, supplier);
         return supplier.id;
     }
 
@@ -960,14 +864,12 @@ class DB {
         Object.assign(supplier, this._auditInfo());
         suppliers.push(supplier);
         this.set('suppliers', suppliers);
-        this._upsertRow('suppliers', supplier.id, supplier);
     }
 
     deleteSupplier(id) {
         let suppliers = this.getSuppliers();
         suppliers = suppliers.filter(s => s.id != id);
         this.set('suppliers', suppliers);
-        this._deleteRow('suppliers', id);
         this.deleteImage(id).catch(e => console.error('Failed to delete supplier image', e));
     }
 
@@ -981,7 +883,6 @@ class DB {
         Object.assign(tx, this._auditInfo());
         txs.push(tx);
         this.set('supplier_txs', txs);
-        this._upsertRow('supplier_txs', tx.id, tx);
         return tx.id;
     }
 
@@ -991,7 +892,6 @@ class DB {
         if (index !== -1) {
             txs[index] = { ...txs[index], ...newData, ...this._auditInfo() }; // Audit update
             this.set('supplier_txs', txs);
-            this._upsertRow('supplier_txs', id, txs[index]);
         }
     }
 
@@ -999,7 +899,6 @@ class DB {
         let txs = this.getSupplierTxs();
         txs = txs.filter(t => t.id != id);
         this.set('supplier_txs', txs);
-        this._deleteRow('supplier_txs', id);
         this.deleteImage(id).catch(e => console.error(e));
     }
 
@@ -1016,7 +915,6 @@ class DB {
         Object.assign(tx, this._auditInfo());
         txs.push(tx);
         this.set('treasury_txs', txs);
-        this._upsertRow('treasury_txs', tx.id, tx);
         return tx.id;
     }
 
@@ -1026,7 +924,6 @@ class DB {
         if (index !== -1) {
             txs[index] = { ...txs[index], ...newData, ...this._auditInfo() };
             this.set('treasury_txs', txs);
-            this._upsertRow('treasury_txs', id, txs[index]);
         }
     }
 
@@ -1034,7 +931,6 @@ class DB {
         let txs = this.getTreasuryTxs();
         txs = txs.filter(t => t.id != id);
         this.set('treasury_txs', txs);
-        this._deleteRow('treasury_txs', id);
         this.deleteImage(id).catch(e => console.error(e));
     }
 
@@ -1124,8 +1020,6 @@ class DB {
         // ترتيب حسب الشهر تنازلياً
         archive.sort((a, b) => b.month.localeCompare(a.month));
         this.set('archive', archive);
-        if(archive.length > 0) Object.assign(archive[0], this._auditInfo());
-        if(archive.length > 0) this._upsertRow('archive', archive[0].month, archive[0]);
 
         return archive;
     }
@@ -1138,7 +1032,6 @@ class DB {
         const archive = this.getArchive();
         const filtered = archive.filter(a => a.month !== month);
         this.set('archive', filtered);
-        this._deleteRow('archive', month);
     }
 
     /**
@@ -1275,4 +1168,5 @@ class DB {
 // ══════════════════════════════════════════════════════════════════════════════
 const db = new DB();
 window.DB = db;
+
 
