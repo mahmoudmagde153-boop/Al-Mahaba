@@ -138,13 +138,21 @@ class DB {
     async _fetchFromSupabase() {
         if (!this.supabase) return;
         try {
-            const { data } = await this.supabase.from('attendance').select('data').eq('month_key', 'FULL_DB_BACKUP').single();
+            const { data, error } = await this.supabase.from('attendance').select('data').eq('month_key', 'FULL_DB_BACKUP').single();
+            if (error && error.code !== 'PGRST116') {
+                console.error('Fetch error:', error);
+                return;
+            }
             if (data && data.data && data.data.users) {
                 const cloudDb = data.data;
                 const localTimestamp = this.get('last_updated') || 0;
                 const cloudTimestamp = cloudDb.last_updated || 0;
                 
-                if (cloudTimestamp > localTimestamp) {
+                // التأكد من أن السحابة تحتوي على بيانات فعلية قبل الكتابة فوق اللوكل
+                const cloudHasData = cloudDb.users && cloudDb.users.length > 0;
+                const localHasData = this.get('users') && this.get('users').length > 0;
+                
+                if (cloudTimestamp > localTimestamp && cloudHasData) {
                     console.log('☁️ السحابة أحدث، جاري التحديث...');
                     for (let k in cloudDb) {
                         this._setLocal(k, cloudDb[k]);
@@ -153,23 +161,29 @@ class DB {
                         sessionStorage.setItem('almahaba_just_fetched', '1');
                         window.location.reload();
                     }
-                } else if (localTimestamp > cloudTimestamp) {
+                } else if (localTimestamp > cloudTimestamp && localHasData) {
                     this._syncToSupabase();
                 }
             } else if (!data) {
-                this._syncToSupabase();
+                const localHasData = this.get('users') && this.get('users').length > 0;
+                if (localHasData) {
+                    this._syncToSupabase();
+                }
             }
         } catch(e) { console.error('Fetch error', e); }
     }
 
     async _syncAllToSupabase() {
         if (!this.supabase) return;
-        if(window.showToast) window.showToast('🚀 جاري رفع داتا شركتك إلى السحابة كنسخة احتياطية...', 'info');
+        const localHasData = this.get('users') && this.get('users').length > 0;
+        if (!localHasData) return;
+
+        // if(window.showToast) window.showToast('🚀 جاري رفع داتا شركتك إلى السحابة كنسخة احتياطية...', 'info');
         this._setLocal('last_updated', Date.now() + 1000);
         await this._syncToSupabase();
-        if(window.showToast) {
-            setTimeout(() => window.showToast('✅ تمت المزامنة بنجاح! السحابة الآن جاهزة.', 'success'), 2000);
-        }
+        // if(window.showToast) {
+        //     setTimeout(() => window.showToast('✅ تمت المزامنة بنجاح! السحابة الآن جاهزة.', 'success'), 2000);
+        // }
     }
 
     /* ═══════════════════════════════════════════════════════════════════════
