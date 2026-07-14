@@ -168,12 +168,26 @@ class DB {
                 else if (key.startsWith('archive_')) reconstructed.archive.push(data);
                 else if (key.startsWith('settings_')) reconstructed.settings = data;
                 else if (key.startsWith('attendance_')) {
-                    const month = key.replace('attendance_', '');
-                    reconstructed.attendance[month] = data;
+                    const parts = key.split('_');
+                    const month = parts[1];
+                    const empId = parts[2];
+                    if (!reconstructed.attendance[month]) reconstructed.attendance[month] = {};
+                    if (empId) {
+                        reconstructed.attendance[month][empId] = data;
+                    } else {
+                        reconstructed.attendance[month] = { ...reconstructed.attendance[month], ...data };
+                    }
                 }
                 else if (key.startsWith('salary_details_')) {
-                    const month = key.replace('salary_details_', '');
-                    reconstructed.salary_details[month] = data;
+                    const parts = key.split('_');
+                    const month = parts[1];
+                    const empId = parts[2];
+                    if (!reconstructed.salary_details[month]) reconstructed.salary_details[month] = {};
+                    if (empId) {
+                        reconstructed.salary_details[month][empId] = data;
+                    } else {
+                        reconstructed.salary_details[month] = { ...reconstructed.salary_details[month], ...data };
+                    }
                 }
             }
 
@@ -257,9 +271,17 @@ class DB {
         if (!this.supabase) return;
         try {
             const key = `${table}_${id}`;
-            await this.supabase.from('attendance').upsert({ month_key: key, data: data });
-            this._setLocal('last_kv_sync', Date.now());
-        } catch(e) { console.error(`Failed to upsert ${key}`, e); }
+            const { data: result, error } = await this.supabase
+                .from('attendance')
+                .upsert({ month_key: key, data: data })
+                .select('created_at')
+                .single();
+            if (result && result.created_at) {
+                this._setLocal('last_kv_sync', new Date(result.created_at).getTime());
+            } else {
+                this._setLocal('last_kv_sync', Date.now()); // fallback
+            }
+        } catch(e) { console.error(`Failed to upsert ${table}_${id}`, e); }
     }
 
     async _deleteRow(table, id) {
@@ -267,8 +289,12 @@ class DB {
         try {
             const key = `${table}_${id}`;
             await this.supabase.from('attendance').delete().eq('month_key', key);
+            // We just trigger a generic update for last_kv_sync to trigger fetches
+            // or we just leave it so the next fetch catches deletions.
+            // But deleting doesn't return created_at. We will just use Date.now() 
+            // since we deleted it, it won't have a created_at anyway.
             this._setLocal('last_kv_sync', Date.now());
-        } catch(e) { console.error(`Failed to delete ${key}`, e); }
+        } catch(e) { console.error(`Failed to delete ${table}_${id}`, e); }
     }
 
     async _syncToSupabase() { /* Obsolete */ }
@@ -569,11 +595,9 @@ class DB {
             }
         } else {
             // إضافة موظف جديد
-            const nextId = this.get('nextEmployeeId') || 1;
-            employee.id = nextId;
+            employee.id = Date.now();
             employee.active = true;
             employees.push(employee);
-            this.set('nextEmployeeId', nextId + 1);
             this._upsertRow('employees', employee.id, employee);
         }
 
@@ -626,7 +650,9 @@ class DB {
      */
     saveAttendance(month, data) {
         this.set(`attendance_${month}`, data);
-        this._upsertRow('attendance', month, data);
+        for (let empId in data) {
+            this._upsertRow('attendance', `${month}_${empId}`, data[empId]);
+        }
     }
 
     /**
@@ -649,7 +675,8 @@ class DB {
             attendance[employeeId][day] = type;
         }
 
-        this.saveAttendance(month, attendance);
+        this.set(`attendance_${month}`, attendance);
+        this._upsertRow('attendance', `${month}_${employeeId}`, attendance[employeeId]);
     }
 
     /**
@@ -734,7 +761,9 @@ class DB {
      */
     saveSalaryDetails(month, data) {
         this.set(`salary_${month}`, data);
-        this._upsertRow('salary_details', month, data);
+        for (let empId in data) {
+            this._upsertRow('salary_details', `${month}_${empId}`, data[empId]);
+        }
     }
 
     /**
