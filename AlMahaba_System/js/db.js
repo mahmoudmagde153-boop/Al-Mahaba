@@ -896,6 +896,7 @@ class DB {
         user.id = Date.now();
         users.push(user);
         this.set('users', users);
+        this._upsertRow('users', user.id, user);
     }
 
     updateUser(id, data) {
@@ -910,6 +911,7 @@ class DB {
             }
             users[index] = { ...users[index], ...data };
             this.set('users', users);
+            this._upsertRow('users', users[index].id, users[index]);
         }
     }
 
@@ -919,6 +921,7 @@ class DB {
         if (id == 1) throw new Error('لا يمكن حذف المدير الرئيسي');
         const newUsers = users.filter(u => u.id != id);
         this.set('users', newUsers);
+        this._deleteRow('users', id);
     }
 
     login(username, password) {
