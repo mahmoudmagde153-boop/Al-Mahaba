@@ -278,20 +278,36 @@ window.Salary = (function () {
 
     const salaryDetails = window.DB.getSalaryDetails(selectedMonth) || {};
     const rows = table.querySelectorAll('tbody tr[data-emp-id]');
+    let updatedAny = false;
 
     rows.forEach(row => {
       const empId = row.dataset.empId;
-      if (!salaryDetails[empId]) salaryDetails[empId] = {};
+      const currentEmpDetails = salaryDetails[empId] || { advances: 0, bonus: 0, overtimeDays: 0, leaveDeduction: 0, paidBonus: 0 };
+      let empChanged = false;
+      const newDetails = { ...currentEmpDetails };
 
       const inputs = row.querySelectorAll('.manual-field');
       inputs.forEach(input => {
         const field = input.dataset.field;
-        salaryDetails[empId][field] = Number(input.value) || 0;
+        const newVal = Number(input.value) || 0;
+        // Compare with current database value
+        if (Number(currentEmpDetails[field] || 0) !== newVal) {
+            newDetails[field] = newVal;
+            empChanged = true;
+        }
       });
+
+      if (empChanged) {
+        window.DB.updateSalaryDetailsForEmployee(selectedMonth, empId, newDetails);
+        updatedAny = true;
+      }
     });
 
-    window.DB.saveSalaryDetails(selectedMonth, salaryDetails);
-    window.showToast('تم حفظ بيانات المرتبات بنجاح', 'success');
+    if (updatedAny) {
+      window.showToast('تم حفظ بيانات المرتبات بنجاح', 'success');
+    } else {
+      window.showToast('لم يتم تعديل أي بيانات للحفظ', 'info');
+    }
 
     // إعادة حساب الجدول لتحديث الحقول المحسوبة
     populateTable();

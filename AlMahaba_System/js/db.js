@@ -769,6 +769,19 @@ class DB {
     }
 
     /**
+     * تحديث تفاصيل المرتب لموظف واحد فقط في شهر معين
+     * @param {string} month - الشهر بصيغة 'YYYY-MM'
+     * @param {number} empId - معرف الموظف
+     * @param {Object} details - تفاصيل المرتب للموظف
+     */
+    updateSalaryDetailsForEmployee(month, empId, details) {
+        const data = this.getSalaryDetails(month);
+        data[empId] = details;
+        this.set(`salary_${month}`, data);
+        this._upsertRow('salary_details', `${month}_${empId}`, details);
+    }
+
+    /**
      * حساب مرتب موظف لشهر معين
      * @param {number} employeeId - معرف الموظف
      * @param {string} month - الشهر بصيغة 'YYYY-MM'

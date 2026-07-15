@@ -85,16 +85,7 @@ window.Attendance = (function () {
                 const type = btn.dataset.type;
                 const { month, employeeId, day } = modalData;
                 
-                const attendance = window.DB.getAttendance(month) || {};
-                if (!attendance[employeeId]) attendance[employeeId] = {};
-                
-                if (type === '') {
-                    delete attendance[employeeId][day];
-                } else {
-                    attendance[employeeId][day] = type;
-                }
-                
-                window.DB.saveAttendance(month, attendance);
+                window.DB.updateAttendanceCell(month, employeeId, day, type);
                 render();
                 closeAttendanceModal();
             });
@@ -217,7 +208,7 @@ window.Attendance = (function () {
             salaryDetails[empId] = { advances: 0, bonus: 0, overtimeDays: 0, leaveDeduction: 0 };
         }
         salaryDetails[empId].advances = (salaryDetails[empId].advances || 0) + amount;
-        window.DB.saveSalaryDetails(currentMonth, salaryDetails);
+        window.DB.updateSalaryDetailsForEmployee(currentMonth, empId, salaryDetails[empId]);
 
         if (window.DB.addTreasuryTx) {
             window.DB.addTreasuryTx({
@@ -284,20 +275,28 @@ window.Attendance = (function () {
             });
         }
 
-        window.showToast('تم صرف مكافأة بقيمة ' + amount + ' ج.م للموظف ' + emp.name, 'success');
+        window.showToast('تم صرف المكافأة للموظف ' + emp.name + ' بنجاح', 'success');
         hideBonusModal();
         document.getElementById('bonusForm').reset();
         render(); 
     }
 
+    function saveAttendanceChanges() {
+        // Since we are already saving instantly on every cell click for concurrency safety,
+        // this button serves as a manual reassurance and re-render.
+        render();
+        window.showToast('تم حفظ حضور الموظفين بنجاح وتحديثه على السحابة', 'success');
+    }
+
     return { 
         init,
+        openAttendanceModal,
         showAdvanceModal,
         hideAdvanceModal,
         saveAdvance,
         showBonusModal,
         hideBonusModal,
-        saveBonus
+        saveBonus,
+        saveAttendanceChanges
     };
 })();
-
