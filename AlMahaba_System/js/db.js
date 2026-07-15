@@ -193,33 +193,16 @@ class DB {
                 }
             }
 
-            // Check if we should update local storage
-            let shouldUpdate = false;
-            const lastSync = parseInt(this.get('last_kv_sync') || '0');
-            
-            // Find max created_at from allRows to detect if cloud has new data
-            let maxCloudTime = 0;
-            allRows.forEach(r => {
-                const rowTime = new Date(r.created_at).getTime();
-                if (rowTime > maxCloudTime) maxCloudTime = rowTime;
-            });
-
-            if (maxCloudTime > lastSync || !this.get('initialized')) {
-                shouldUpdate = true;
-            }
+            // Update local storage unconditionally if we successfully fetched from cloud
+            // This ensures all users see the latest updates from other users regardless of clock drift
+            let shouldUpdate = true;
 
             if (shouldUpdate) {
                 console.log('🔄 Updating local storage from cloud...');
                 for (let k in reconstructed) {
                     this._setLocal(k, reconstructed[k]);
                 }
-                this._setLocal('last_kv_sync', maxCloudTime);
                 this._setLocal('initialized', true);
-
-                if (!sessionStorage.getItem('almahaba_just_fetched')) {
-                    sessionStorage.setItem('almahaba_just_fetched', '1');
-                    window.location.reload();
-                }
             }
 
         } catch(e) { console.error('Fetch error', e); }
